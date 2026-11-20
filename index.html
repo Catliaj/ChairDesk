@@ -449,9 +449,18 @@
       background: var(--brand-soft);
       border-radius: 10px;
       padding: 8px 12px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+    .privacy-box.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
     }
     .privacy-box input { width: 16px; height: 16px; accent-color: var(--brand); cursor: pointer; }
     .privacy-box label { font-size: 11px; font-weight: 700; color: var(--brand); cursor: pointer; }
+    .privacy-box.active label { color: #fff; }
 
     .alert-card {
       background: linear-gradient(90deg, #fff5f6 0%, #fff 70%);
@@ -957,9 +966,9 @@
                 </select>
               </div>
             </div>
-            <div class="privacy-box" title="Protects confidential faculty names during committee meetings">
+            <div class="privacy-box" id="privacyBox" onclick="if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'LABEL') togglePrivacyFromSidebar()" title="Masks faculty names into anonymous codes (FAC-104) in the table & drill-down panel">
               <input type="checkbox" id="privacyToggle" onchange="togglePrivacyMask()" />
-              <label for="privacyToggle">Privacy Mode</label>
+              <label for="privacyToggle" id="privacyBoxLabel">Privacy Mode</label>
             </div>
           </section>
 
@@ -1748,19 +1757,75 @@
       const query = document.getElementById('tableSearch').value.trim().toLowerCase();
       const rows = document.querySelectorAll('#sectionTable tbody tr');
       let visible = 0;
+      const visibleRows = [];
 
       rows.forEach(row => {
         const show = matchesFilters(row, cluster, alertFilter, query);
         row.style.display = show ? '' : 'none';
-        if (show) visible++;
+        if (show) {
+          visible++;
+          visibleRows.push(row);
+        }
       });
 
       document.getElementById('rowCount').textContent = visible + ' of ' + rows.length + ' sections';
+      const heroCountEl = document.querySelector('.hero-stat strong');
+      if (heroCountEl) heroCountEl.textContent = visible;
+
+      // Recompute KPI cards dynamically when Cluster, Alert Filter, or Search narrows the sections
+      if (cluster !== 'ALL' || alertFilter !== 'ALL' || query !== '') {
+        updateFilteredKpis(visibleRows);
+      }
+
       syncChartFilters(cluster, alertFilter, query);
       if (replay) {
         replayTrend();
         replayChartBars();
       }
+    }
+
+    function updateFilteredKpis(visibleRows) {
+      const term = document.getElementById('termSelect').value;
+      const termOffset = term === '2026-1' ? 0 : (term === '2025-2' ? -1.3 : -2.5);
+      const seteOffset = term === '2026-1' ? 0 : (term === '2025-2' ? -0.06 : -0.13);
+      const respOffset = term === '2026-1' ? 0 : (term === '2025-2' ? -2.7 : -4.8);
+
+      if (!visibleRows.length) {
+        animateKpi('kpiPassVal', '0.0%');
+        animateKpi('kpiRiskVal', '0.0% <small>(0 Stu)</small>');
+        animateKpi('kpiCapVal', '0.0%');
+        animateKpi('kpiSeteVal', '0.00 <small>/ 5.00</small>');
+        animateKpi('kpiRespVal', '0.0%');
+        return;
+      }
+
+      let sumPass = 0, sumSete = 0, sumResp = 0, totalEnrolled = 0, totalSeats = 0, totalRisk = 0;
+      visibleRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const capMatch = cells[2].textContent.match(/\((\d+)\/(\d+)\)/);
+        if (capMatch) {
+          totalEnrolled += parseInt(capMatch[1], 10);
+          totalSeats += parseInt(capMatch[2], 10);
+        }
+        sumPass += parseFloat(cells[3].textContent) + termOffset;
+        const riskMatch = cells[4].textContent.match(/\((\d+)\)/);
+        if (riskMatch) totalRisk += parseInt(riskMatch[1], 10);
+        sumSete += parseFloat(cells[5].textContent) + seteOffset;
+        sumResp += parseFloat(cells[6].textContent) + respOffset;
+      });
+
+      const n = visibleRows.length;
+      const avgPass = Math.max(0, sumPass / n).toFixed(1);
+      const riskPct = totalEnrolled ? (totalRisk / totalEnrolled * 100).toFixed(1) : '0.0';
+      const capPct = totalSeats ? (totalEnrolled / totalSeats * 100).toFixed(1) : '0.0';
+      const avgSete = Math.max(0, sumSete / n).toFixed(2);
+      const avgResp = Math.max(0, sumResp / n).toFixed(1);
+
+      animateKpi('kpiPassVal', avgPass + '%');
+      animateKpi('kpiRiskVal', riskPct + '% <small>(' + totalRisk + ' Stu)</small>');
+      animateKpi('kpiCapVal', capPct + '%');
+      animateKpi('kpiSeteVal', avgSete + ' <small>/ 5.00</small>');
+      animateKpi('kpiRespVal', avgResp + '%');
     }
 
     function applyDashboardFilters() {
@@ -1860,6 +1925,8 @@
       document.getElementById('drillFacultyBadge').textContent =
         'Instructor: ' + (isPrivacyMasked ? currentSelectedFacultyCode : currentSelectedFacultyName);
       document.getElementById('privacyNavLabel').textContent = 'Privacy Mode: ' + (isPrivacyMasked ? 'On' : 'Off');
+      document.getElementById('privacyBox').classList.toggle('active', isPrivacyMasked);
+      document.getElementById('privacyBoxLabel').textContent = isPrivacyMasked ? 'Privacy Mode: ON' : 'Privacy Mode';
     }
 
     function togglePrivacyFromSidebar() {
