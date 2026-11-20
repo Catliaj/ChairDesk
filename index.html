@@ -1,0 +1,1966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BAT 405 Integrated Case Study - Program Chair Analytics & Decision-Support System" />
+  <title>ChairDesk | Program Chair Analytics Dashboard (BAT 405)</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --line: #e7ecf4;
+      --line-strong: #d7dfec;
+      --ink: #0f172a;
+      --ink-2: #334155;
+      --muted: #64748b;
+      --muted-2: #94a3b8;
+      --brand: #4f46e5;
+      --brand-2: #6366f1;
+      --brand-soft: #eef2ff;
+      --teal: #0d9488;
+      --teal-soft: #ecfdf5;
+      --amber: #d97706;
+      --amber-soft: #fffbeb;
+      --rose: #e11d48;
+      --rose-soft: #fff1f2;
+      --violet: #7c3aed;
+      --violet-soft: #f5f3ff;
+      --green: #15803d;
+      --green-soft: #ecfdf5;
+      --sidebar: #0d1529;
+      --sidebar-2: #142244;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04);
+      --shadow-hover: 0 12px 28px rgba(15, 23, 42, 0.10);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+    .capacity-row:focus-visible { box-shadow: 0 0 0 2px var(--brand); }
+
+    .app-shell { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 252px;
+      flex-shrink: 0;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 14px 16px;
+      background: linear-gradient(180deg, var(--sidebar) 0%, var(--sidebar-2) 100%);
+      color: #cbd5e1;
+      z-index: 40;
+      transition: width 0.25s ease, transform 0.25s ease;
+      overflow: hidden;
+    }
+
+    .sidebar::after {
+      content: '';
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: rgba(99, 102, 241, 0.10);
+      right: -150px;
+      top: 40%;
+      pointer-events: none;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 2px 6px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 18px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      object-fit: cover;
+      background: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .brand-copy { display: flex; flex-direction: column; line-height: 1.25; white-space: nowrap; }
+    .brand-copy strong { color: #fff; font-size: 16px; letter-spacing: -0.02em; }
+    .brand-copy span { font-size: 10.5px; color: #94a3b8; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 3px; }
+
+    .sidebar-close { display: none; }
+
+    .section-label {
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      color: #64748b;
+      text-transform: uppercase;
+      padding: 0 12px;
+      margin: 14px 0 8px;
+      white-space: nowrap;
+    }
+
+    .side-nav { display: flex; flex-direction: column; gap: 3px; }
+
+    .side-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #aab6cb;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: background 0.15s ease, color 0.15s ease;
+      position: relative;
+    }
+
+    .side-link svg { width: 18px; height: 18px; flex-shrink: 0; stroke-width: 1.8; }
+
+    .side-link:hover { background: rgba(255,255,255,0.06); color: #fff; }
+
+    .side-link.active {
+      background: linear-gradient(90deg, rgba(99,102,241,0.30), rgba(99,102,241,0.10));
+      color: #fff;
+    }
+
+    .side-link.active::before {
+      content: '';
+      position: absolute;
+      left: -14px;
+      top: 9px;
+      bottom: 9px;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: #818cf8;
+    }
+
+    .side-link .side-badge {
+      margin-left: auto;
+      background: var(--rose);
+      color: #fff;
+      font-size: 9.5px;
+      font-weight: 800;
+      min-width: 19px;
+      height: 19px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+    }
+
+    .sidebar-spacer { flex: 1; }
+
+    .system-card {
+      margin: 12px 4px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.055);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .system-card .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; }
+    .system-card .row + .row { margin-top: 7px; }
+    .system-card .label { color: #94a3b8; }
+    .system-card .value { color: #e2e8f0; font-weight: 700; }
+    .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #34d399; margin-right: 5px; box-shadow: 0 0 0 3px rgba(52,211,153,0.15); }
+
+    .side-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 8px 2px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      white-space: nowrap;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #818cf8, #4f46e5);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .side-user-meta { display: flex; flex-direction: column; line-height: 1.3; }
+    .side-user-meta strong { color: #f1f5f9; font-size: 11.5px; }
+    .side-user-meta span { color: #94a3b8; font-size: 10px; margin-top: 2px; }
+
+    .main-area { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+    .topbar {
+      height: 72px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 28px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .page-heading h1 { font-size: 17px; font-weight: 750; letter-spacing: -0.02em; }
+    .page-heading p { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink-2);
+      display: grid;
+      place-items: center;
+      position: relative;
+      transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .icon-btn:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
+    .icon-btn svg { width: 17px; height: 17px; stroke-width: 1.9; }
+    .menu-btn { display: none; }
+    .notif-dot { position: absolute; top: 7px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--rose); border: 1.5px solid #fff; }
+
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 36px;
+      width: 236px;
+      padding: 0 11px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-soft);
+      color: var(--muted-2);
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .search-box:focus-within { border-color: var(--brand); background: #fff; }
+    .search-box svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .search-box input { border: 0; outline: 0; background: transparent; font-size: 12px; color: var(--ink); width: 100%; }
+    .search-box input::placeholder { color: var(--muted-2); }
+
+    .notif-wrap { position: relative; }
+
+    .notif-panel {
+      position: absolute;
+      right: 0;
+      top: 46px;
+      width: 340px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 18px 40px rgba(15,23,42,0.16);
+      padding: 14px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-6px);
+      transition: all 0.18s ease;
+      z-index: 50;
+    }
+
+    .notif-panel.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .notif-panel h3 { font-size: 12.5px; margin-bottom: 9px; }
+    .notif-item { padding: 10px; border-radius: 9px; background: var(--rose-soft); margin-top: 7px; font-size: 11px; color: #881337; }
+    .notif-item strong { display: block; color: #9f1239; margin-bottom: 2px; }
+    .notif-item.amber { background: var(--amber-soft); color: #92400e; }
+    .notif-item.amber strong { color: #b45309; }
+
+    .topbar-user { display: flex; align-items: center; gap: 9px; padding-left: 12px; border-left: 1px solid var(--line); }
+    .topbar-user .avatar { width: 33px; height: 33px; border-radius: 50%; }
+    .topbar-user-meta { display: flex; flex-direction: column; line-height: 1.3; }
+    .topbar-user-meta strong { font-size: 11.5px; }
+    .topbar-user-meta span { font-size: 10px; color: var(--muted); }
+
+    .content { padding: 24px 28px 30px; display: flex; flex-direction: column; gap: 18px; max-width: 1660px; width: 100%; margin: 0 auto; }
+
+    .hero {
+      border-radius: 20px;
+      padding: 24px 28px;
+      color: #fff;
+      background:
+        radial-gradient(circle at 88% 15%, rgba(255,255,255,0.16) 0, transparent 30%),
+        radial-gradient(circle at 70% 120%, rgba(255,255,255,0.10) 0, transparent 35%),
+        linear-gradient(115deg, #312e81 0%, #4f46e5 55%, #6d28d9 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 22px;
+      flex-wrap: wrap;
+      box-shadow: 0 12px 30px rgba(79,70,229,0.20);
+    }
+
+    .hero-kicker { display: inline-flex; align-items: center; gap: 7px; font-size: 10px; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; color: #c7d2fe; margin-bottom: 7px; }
+    .hero-kicker .live-dot { background: #6ee7b7; }
+    .hero h2 { font-size: clamp(19px, 2vw, 25px); font-weight: 750; letter-spacing: -0.025em; }
+    .hero p { font-size: 12px; color: #dbe4ff; margin-top: 5px; max-width: 560px; }
+
+    .editable-app-name {
+      background: rgba(255,255,255,0.14);
+      border: 1px dashed rgba(255,255,255,0.55);
+      padding: 1px 7px;
+      border-radius: 6px;
+      color: #fde68a;
+      font-weight: 800;
+      outline: none;
+      cursor: text;
+    }
+
+    .editable-app-name:focus { border-color: #fde68a; background: rgba(255,255,255,0.24); }
+
+    .hero-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .hero-stat {
+      min-width: 152px;
+      background: rgba(255,255,255,0.11);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 13px;
+      padding: 12px 14px;
+      backdrop-filter: blur(4px);
+    }
+
+    .hero-stat span { display: block; font-size: 10px; color: #c7d2fe; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+    .hero-stat strong { display: block; font-size: 23px; letter-spacing: -0.03em; margin: 3px 0 1px; }
+    .hero-stat small { font-size: 10px; color: #dbe4ff; }
+
+    .view-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+    .view-tabs { display: inline-flex; gap: 4px; padding: 4px; background: #e9edf5; border-radius: 11px; }
+
+    .tab-btn {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn:hover { color: var(--ink); }
+    .tab-btn.active { background: #fff; color: var(--brand); box-shadow: 0 1px 4px rgba(15,23,42,0.10); }
+
+    .view-bar-note { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+    .view-bar-note .chip { background: #fff; border: 1px solid var(--line); }
+
+    .view-stack { display: flex; flex-direction: column; gap: 18px; }
+    .print-col { display: contents; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 4px 9px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .chip.brand { background: var(--brand-soft); color: var(--brand); }
+    .chip.violet { background: var(--violet-soft); color: var(--violet); }
+    .chip.green { background: var(--green-soft); color: var(--green); }
+    .chip.teal { background: var(--teal-soft); color: var(--teal); }
+    .chip.amber { background: var(--amber-soft); color: var(--amber); }
+    .chip.rose { background: var(--rose-soft); color: var(--rose); }
+
+    .control-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .control-card .lead { display: flex; align-items: center; gap: 10px; padding-right: 18px; border-right: 1px solid var(--line); }
+    .control-icon { width: 34px; height: 34px; border-radius: 10px; background: var(--brand-soft); color: var(--brand); display: grid; place-items: center; flex-shrink: 0; }
+    .control-icon svg { width: 17px; height: 17px; }
+    .control-card .lead strong { font-size: 12px; display: block; }
+    .control-card .lead span { font-size: 10.5px; color: var(--muted); }
+
+    .slicers { display: flex; gap: 12px; flex: 1; flex-wrap: wrap; }
+    .slicer { display: flex; flex-direction: column; gap: 4px; min-width: 175px; flex: 1; }
+    .slicer label { font-size: 9.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .slicer select {
+      height: 36px;
+      width: 100%;
+      border-radius: 9px;
+      border: 1px solid var(--line-strong);
+      background: var(--surface-soft);
+      color: var(--ink);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 0 9px;
+      outline: none;
+      cursor: pointer;
+    }
+    .slicer select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(79,70,229,0.10); }
+
+    .privacy-box {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border: 1px solid #c7d2fe;
+      background: var(--brand-soft);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+    .privacy-box input { width: 16px; height: 16px; accent-color: var(--brand); cursor: pointer; }
+    .privacy-box label { font-size: 11px; font-weight: 700; color: var(--brand); cursor: pointer; }
+
+    .alert-card {
+      background: linear-gradient(90deg, #fff5f6 0%, #fff 70%);
+      border: 1px solid #fecdd3;
+      border-left: 4px solid var(--rose);
+      border-radius: var(--radius);
+      padding: 15px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .alert-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+    .alert-head h3 { font-size: 12.5px; color: #9f1239; display: flex; align-items: center; gap: 8px; }
+    .alert-head h3 .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--rose); box-shadow: 0 0 0 4px rgba(225,29,72,0.12); }
+    .alert-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .alert-item { font-size: 11px; color: #881337; background: rgba(255,255,255,0.72); border: 1px solid #ffe4e6; border-radius: 10px; padding: 9px 11px; }
+    .alert-item strong { color: #9f1239; }
+
+    .section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 2px; }
+    .section-heading h2 { font-size: 14px; font-weight: 750; letter-spacing: -0.01em; }
+    .section-heading p { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .section-heading .hint { font-size: 10.5px; color: var(--muted-2); }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--line-strong); }
+    .kpi-card::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); opacity: 0.85; }
+    .kpi-blue { --accent: var(--brand); --accent-soft: var(--brand-soft); }
+    .kpi-amber { --accent: var(--amber); --accent-soft: var(--amber-soft); }
+    .kpi-teal { --accent: var(--teal); --accent-soft: var(--teal-soft); }
+    .kpi-violet { --accent: var(--violet); --accent-soft: var(--violet-soft); }
+    .kpi-green { --accent: var(--green); --accent-soft: var(--green-soft); }
+
+    .kpi-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .kpi-icon { width: 36px; height: 36px; border-radius: 11px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; flex-shrink: 0; }
+    .kpi-icon svg { width: 18px; height: 18px; stroke-width: 1.9; }
+    .kpi-source { font-size: 9px; font-weight: 700; color: var(--muted); background: var(--surface-soft); border: 1px solid var(--line); padding: 3px 7px; border-radius: 999px; white-space: nowrap; }
+
+    .kpi-label { font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 13px; }
+    .kpi-value-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: 4px; }
+    .kpi-value { font-size: clamp(21px, 2.1vw, 27px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.15; white-space: nowrap; }
+    .kpi-value small { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+    .spark { width: 74px; height: 30px; color: var(--accent); flex-shrink: 0; opacity: 0.9; }
+    .kpi-delta { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 999px; margin-top: 9px; }
+    .delta-good { background: var(--green-soft); color: var(--green); }
+    .delta-warn { background: var(--amber-soft); color: var(--amber); }
+    .delta-bad { background: var(--rose-soft); color: var(--rose); }
+    .kpi-footer { display: flex; justify-content: space-between; gap: 6px; font-size: 10px; color: var(--muted); border-top: 1px dashed var(--line-strong); padding-top: 9px; margin-top: 12px; }
+    .kpi-footer strong { color: var(--ink-2); }
+
+    .chart-grid { display: grid; grid-template-columns: 1.08fr 1.15fr 0.95fr; gap: 14px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 17px 18px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      min-width: 0;
+    }
+
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+    .card-title h3 { font-size: 13px; font-weight: 750; letter-spacing: -0.01em; }
+    .card-title p { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+
+    .legend { display: flex; gap: 11px; flex-wrap: wrap; font-size: 10px; color: var(--muted); }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .legend i { width: 8px; height: 8px; border-radius: 3px; display: inline-block; }
+
+    .chart-box { width: 100%; min-height: 218px; display: flex; align-items: center; justify-content: center; }
+    .chart-box svg { width: 100%; height: auto; max-height: 230px; overflow: visible; }
+    .chart-box svg text { font-family: inherit; }
+    .chart-box svg rect.bar, .chart-box svg circle { transition: opacity 0.15s ease, transform 0.15s ease; cursor: default; }
+    .chart-box svg rect.bar:hover, .chart-box svg circle:hover { opacity: 0.75; }
+    .semester-group { transition: opacity 0.35s ease; }
+    .semester-group.sem-dim { opacity: 0.3; }
+    .semester-group.sem-focus rect.bar { stroke: #0f172a; stroke-width: 1; }
+    .scatter-point { transform: translate(var(--tx, 0px), var(--ty, 0px)); transition: opacity 0.35s ease, transform 0.6s ease; }
+    .scatter-point.filtered-out { opacity: 0.12; transform: translate(var(--tx, 0px), var(--ty, 0px)) translateY(4px); }
+
+    .risk-rows { display: flex; flex-direction: column; gap: 11px; }
+    .risk-row { display: flex; flex-direction: column; gap: 5px; transition: opacity 0.35s ease, transform 0.35s ease; }
+    .risk-row.filtered-out { opacity: 0.14; transform: translateY(4px); }
+    .seg-high, .seg-mod, .seg-low { transition: width 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .risk-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; font-weight: 600; }
+    .risk-meta em { font-style: normal; color: var(--muted); font-weight: 500; }
+    .bar-track { width: 100%; height: 10px; border-radius: 999px; background: #eef2f7; overflow: hidden; display: flex; }
+    .seg-high { background: linear-gradient(90deg, #fb7185, #e11d48); }
+    .seg-mod { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+    .seg-low { background: linear-gradient(90deg, #34d399, #10b981); }
+
+    .insight-grid { display: grid; grid-template-columns: 1.15fr 1.05fr 0.8fr; gap: 14px; }
+
+    .capacity-list { display: flex; flex-direction: column; gap: 9px; }
+    .capacity-row { display: grid; grid-template-columns: 76px 1fr 50px; align-items: center; gap: 9px; padding: 4px; border-radius: 8px; cursor: pointer; transition: background 0.15s ease, opacity 0.35s ease, transform 0.35s ease; }
+    .capacity-row:hover { background: var(--surface-soft); }
+    .capacity-row.active { background: var(--brand-soft); }
+    .capacity-row.filtered-out { opacity: 0.14; transform: translateY(4px); pointer-events: none; }
+    .capacity-row strong { font-size: 10.5px; }
+    .capacity-value { font-size: 10px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+    .capacity-track { position: relative; height: 12px; border-radius: 999px; background: #eef2f7; overflow: hidden; }
+    .capacity-band { position: absolute; left: 85%; width: 15%; top: 0; bottom: 0; background: rgba(16,185,129,0.14); border-left: 1px dashed rgba(5,150,105,0.45); border-right: 1px dashed rgba(5,150,105,0.45); z-index: 1; pointer-events: none; }
+    .capacity-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, #2dd4bf, #0d9488); transition: width 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .capacity-row.over .capacity-fill { background: linear-gradient(90deg, #fb7185, #e11d48); }
+    .capacity-row.under .capacity-fill { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+    .capacity-note { font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .capacity-note i { width: 18px; height: 8px; border-radius: 3px; background: rgba(16,185,129,0.20); border: 1px dashed rgba(5,150,105,0.45); }
+
+    .trend-chart svg { width: 100%; height: auto; max-height: 210px; overflow: visible; }
+    .trend-chart svg text { font-family: inherit; }
+    .trend-chart .grid-line { stroke: #e7ecf4; stroke-dasharray: 3,3; }
+    .trend-chart .axis-line { stroke: #cbd5e1; }
+    .trend-chart .target-pass { stroke: #f43f5e; stroke-dasharray: 5,3; }
+    .trend-chart .target-resp { stroke: #f59e0b; stroke-dasharray: 5,3; }
+    .trend-chart .line-pass { fill: none; stroke: #4f46e5; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1000; stroke-dashoffset: 0; transition: stroke-dashoffset 0.85s ease; }
+    .trend-chart .line-resp { fill: none; stroke: #0d9488; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1000; stroke-dashoffset: 0; transition: stroke-dashoffset 0.85s ease; }
+    .trend-chart .term-band { fill: #eef2ff; opacity: 0; transition: opacity 0.2s ease; }
+    .trend-chart .term-band.active { opacity: 1; }
+    .trend-chart .term-label { font-size: 9px; fill: #94a3b8; }
+    .trend-chart .term-label.active { fill: #4338ca; font-weight: 800; }
+    .trend-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 10px; color: var(--muted); }
+    .trend-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .trend-legend i { width: 14px; height: 3px; border-radius: 3px; display: inline-block; }
+
+    .donut-body { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .donut-wrap { position: relative; width: 132px; height: 132px; flex-shrink: 0; }
+    .donut-wrap svg { width: 132px; height: 132px; transform: rotate(-90deg); }
+    .donut-wrap circle { fill: none; stroke-width: 13; transition: stroke-dasharray 0.7s ease, stroke-dashoffset 0.7s ease, stroke 0.35s ease; }
+    .donut-row { transition: opacity 0.35s ease; }
+    .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .donut-center strong { font-size: 21px; font-weight: 800; letter-spacing: -0.03em; }
+    .donut-center span { font-size: 9px; color: var(--muted); }
+    .donut-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 130px; }
+    .donut-row { display: flex; align-items: center; gap: 6px; font-size: 10px; }
+    .donut-row i { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; }
+    .donut-row span { color: var(--muted); }
+    .donut-row b { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+    .bottom-grid { display: grid; grid-template-columns: 1.65fr 1fr; gap: 14px; align-items: stretch; }
+
+    .table-tools { display: flex; align-items: center; gap: 8px; }
+    .table-count { font-size: 10px; font-weight: 700; color: var(--brand); background: var(--brand-soft); border-radius: 999px; padding: 4px 9px; }
+
+    .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+    table { width: 100%; min-width: 730px; border-collapse: collapse; font-size: 11px; }
+    thead th { background: var(--surface-soft); color: var(--muted); font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; text-align: left; padding: 10px 11px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    tbody td { padding: 10px 11px; border-bottom: 1px solid var(--line); vertical-align: middle; color: var(--ink-2); }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr.clickable-row { cursor: pointer; transition: background 0.15s ease; }
+    tbody tr.clickable-row:hover { background: #f8faff; }
+    tbody tr.selected-row { background: var(--brand-soft); box-shadow: inset 3px 0 0 var(--brand); }
+    tbody tr.selected-row td:first-child strong { color: var(--brand); }
+    .course-code { font-weight: 800; color: var(--ink); }
+    .mono { font-variant-numeric: tabular-nums; }
+
+    .status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px; font-size: 9.5px; font-weight: 800; white-space: nowrap; }
+    .pill-critical { background: var(--rose-soft); color: var(--rose); }
+    .pill-caution { background: var(--amber-soft); color: var(--amber); }
+    .pill-optimal { background: var(--green-soft); color: var(--green); }
+    .pill-rigor { background: var(--violet-soft); color: var(--violet); }
+
+    .drill-panel {
+      background: linear-gradient(180deg, #f8faff 0%, #eef2ff 100%);
+      border: 1px solid #dbe3ff;
+      border-radius: 13px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      height: 100%;
+    }
+
+    .drill-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid #dfe6ff; padding-bottom: 10px; }
+    .drill-head strong { display: block; font-size: 12.5px; color: var(--brand); }
+    .drill-head span { display: block; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+
+    .dim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .dim-box { background: #fff; border: 1px solid #e2e8f7; border-radius: 10px; padding: 9px 10px; }
+    .dim-top { display: flex; justify-content: space-between; gap: 6px; font-size: 10px; color: var(--muted); }
+    .dim-top b { color: var(--ink); font-size: 10.5px; white-space: nowrap; }
+    .dim-meter { height: 5px; border-radius: 999px; background: #eef2f7; margin-top: 7px; overflow: hidden; }
+    .dim-meter i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #818cf8, #4f46e5); transition: width 0.35s ease; }
+    .dim-box.low .dim-meter i { background: linear-gradient(90deg, #fb7185, #e11d48); }
+    .dim-box.mid .dim-meter i { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+
+    .decision-box { background: #fff; border: 1px solid var(--line-strong); border-radius: 10px; padding: 11px 12px; font-size: 11px; color: var(--ink-2); }
+    .decision-box strong { display: block; color: var(--ink); font-size: 11px; margin-bottom: 4px; }
+
+    .drill-foot { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 10px; color: var(--muted); background: #eef2f7; border-radius: 9px; padding: 8px 10px; }
+
+    .guide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+    .guide-grid .card { align-items: stretch; }
+    .guide-body { font-size: 11.5px; color: var(--ink-2); line-height: 1.75; }
+    .guide-body p { margin-bottom: 8px; }
+    .guide-body code { background: var(--surface-soft); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 10.5px; color: var(--brand); }
+
+    .footer { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 10.5px; color: var(--muted); padding: 4px 2px 0; }
+
+    .chart-tooltip {
+      position: fixed;
+      z-index: 100;
+      max-width: 240px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 10.5px;
+      line-height: 1.4;
+      padding: 7px 10px;
+      border-radius: 8px;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.28);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    .chart-tooltip.show { opacity: 1; transform: translateY(0); }
+
+    .sidebar-overlay { display: none; }
+
+    .app-shell.collapsed .sidebar { width: 76px; }
+    .app-shell.collapsed .brand-copy,
+    .app-shell.collapsed .section-label,
+    .app-shell.collapsed .side-link span,
+    .app-shell.collapsed .side-link .side-badge,
+    .app-shell.collapsed .system-card,
+    .app-shell.collapsed .side-user-meta { display: none; }
+    .app-shell.collapsed .brand-row { justify-content: center; padding-left: 0; padding-right: 0; }
+    .app-shell.collapsed .side-link { justify-content: center; padding: 12px 0; }
+    .app-shell.collapsed .side-user { justify-content: center; padding-left: 0; padding-right: 0; }
+    .app-shell.collapsed .side-link.active::before { left: -14px; }
+
+    @media (max-width: 1400px) {
+      .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); }
+      .chart-grid { grid-template-columns: 1fr 1fr; }
+      .chart-grid > .card:last-child { grid-column: 1 / -1; }
+      .chart-grid > .card:last-child .risk-rows { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; }
+      .insight-grid { grid-template-columns: 1fr 1fr; }
+      .insight-grid > .card:last-child { grid-column: 1 / -1; }
+      .insight-grid > .card:last-child .donut-body { justify-content: center; }
+    }
+
+    @media (max-width: 1120px) {
+      .sidebar { position: fixed; transform: translateX(-100%); box-shadow: 18px 0 50px rgba(15,23,42,0.28); }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay { display: block; position: fixed; inset: 0; background: rgba(15,23,42,0.45); opacity: 0; visibility: hidden; transition: all 0.2s ease; z-index: 35; }
+      .sidebar-overlay.show { opacity: 1; visibility: visible; }
+      .sidebar-close { display: grid; place-items: center; margin-left: auto; width: 28px; height: 28px; border: 1px solid rgba(255,255,255,0.16); border-radius: 8px; background: rgba(255,255,255,0.06); color: #e2e8f0; }
+      .sidebar-close svg { width: 15px; height: 15px; }
+      .menu-btn { display: grid; }
+      .app-shell.collapsed .sidebar { width: 252px; }
+      .app-shell.collapsed .brand-copy,
+      .app-shell.collapsed .section-label,
+      .app-shell.collapsed .side-link span,
+      .app-shell.collapsed .side-link .side-badge,
+      .app-shell.collapsed .system-card,
+      .app-shell.collapsed .side-user-meta { display: revert; }
+      .app-shell.collapsed .brand-row { justify-content: flex-start; padding-left: 6px; padding-right: 6px; }
+      .app-shell.collapsed .side-link { justify-content: flex-start; padding: 10px 12px; }
+      .app-shell.collapsed .side-user { justify-content: flex-start; padding-left: 8px; padding-right: 8px; }
+      .app-shell.collapsed .system-card { display: block; }
+    }
+
+    @media (max-width: 900px) {
+      .topbar { padding: 0 18px; }
+      .content { padding: 18px; }
+      .topbar-user-meta, .view-bar-note { display: none; }
+      .alert-list { grid-template-columns: 1fr; }
+      .chart-grid, .insight-grid, .bottom-grid { grid-template-columns: 1fr; }
+      .chart-grid > .card:last-child { grid-column: auto; }
+      .chart-grid > .card:last-child .risk-rows { grid-template-columns: 1fr; }
+      .insight-grid > .card:last-child { grid-column: auto; }
+    }
+
+    @media (max-width: 640px) {
+      .topbar { height: auto; min-height: 66px; padding: 10px 14px; flex-wrap: wrap; }
+      .topbar-actions { width: 100%; justify-content: space-between; }
+      .search-box { flex: 1; width: auto; }
+      .content { padding: 14px; gap: 14px; }
+      .hero { padding: 18px; }
+      .hero-stats { width: 100%; }
+      .hero-stat { flex: 1; min-width: 120px; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .control-card .lead { border-right: 0; padding-right: 0; }
+      .slicer { min-width: 100%; }
+      .notif-panel { width: min(340px, calc(100vw - 28px)); right: -46px; }
+      .view-tabs { width: 100%; }
+      .tab-btn { flex: 1; }
+    }
+
+    @media (max-width: 420px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+      .dim-grid { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      @page { size: A3 landscape; margin: 0.18in; }
+      body { background: #fff; font-size: 9px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .sidebar, .sidebar-overlay, .topbar, .view-bar, .hero, .control-card, .footer, .chart-tooltip { display: none !important; }
+      .main-area, .content { padding: 0; max-width: 100%; }
+      .view-stack { flex-direction: row !important; align-items: flex-start; gap: 7px; }
+      .print-col { display: flex !important; flex-direction: column; flex: 1 1 0; gap: 7px; min-width: 0; }
+      .print-col-left { flex: 1.02 1 0; }
+      .print-col-right { flex: 0.98 1 0; }
+      .card, .alert-card, .kpi-card { padding: 6px 8px; border-radius: 8px; break-inside: avoid; box-shadow: none; }
+      .card-head, .section-heading { padding-bottom: 4px; margin-bottom: 4px; }
+      .card-head p, .card-head .chip, .section-heading p, .section-heading .hint { display: none !important; }
+      .card-title h3, .section-heading h2 { font-size: 11px !important; }
+      .kpi-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 6px; }
+      .kpi-value { font-size: 15px; }
+      .kpi-value small { font-size: 8px; }
+      .chart-grid { grid-template-columns: 1.05fr 1.15fr 0.95fr !important; gap: 6px; }
+      .chart-grid > .card:last-child { grid-column: auto; }
+      .chart-grid > .card:last-child .risk-rows { display: flex; gap: 4px; }
+      .insight-grid { grid-template-columns: 1.15fr 1.05fr 0.8fr !important; gap: 6px; }
+      .insight-grid > .card:last-child { grid-column: auto; }
+      .bottom-grid { grid-template-columns: 1.65fr 1fr !important; gap: 6px; }
+      .chart-box { min-height: 120px; }
+      .chart-box svg { max-height: 125px; }
+      .donut-wrap, .donut-wrap svg { width: 88px; height: 88px; }
+      .capacity-row { padding: 2px; }
+      .risk-row { gap: 3px; }
+      .alert-list { gap: 3px; }
+      .alert-item { font-size: 8.5px; padding: 4px 6px; }
+      table { font-size: 8px; }
+      th, td { padding: 2px 3px; }
+      .status-pill { font-size: 7px; padding: 1px 3px; white-space: nowrap; }
+      .drill-panel { padding: 6px; }
+      .dim-grid { gap: 5px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-row">
+        <img class="brand-logo" src="data:image/jpeg;base64,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PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPOjfPPPPPPPPPPPPPPPPPPPPPLPsf/PPPPPPPPPPPPPPPPPPPP5PvvvvvvvvvvvvvvvvvvvvvvvvvvvPvPPPPPPPPPPPPPPPPPOPPvvvvvvvvvvvvvvvvvvvvvvvvvvvvvj9fPPPPPPPPPPPPPPL3PvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvmffPPPPPPPPPPPPPJPvvvvvvvvvvvvvvvu//AL7777777777777753zzzzzzzzzzzzz777777777777777rD3zx3nb777777777777713zzzzzzzzzzzzX777777777777+w/wB88889f43++++++++++++T888888888888U++++++++++zqe8888888888s26++++++++++u8888888888888++++++++78988888888888888s83++++++++88888888888888++++++8sc888888888888888888s80/+++++88888888888888+++++v988888888888888888888882Q/++++88888888888888+++++++PV988888888888888889h/8Awv8A7777zzzzzzzzzzzzzz777777775/PLzzzzzzzzzzzzaP/wC+/C/++++88888888888888+++++++++++uP8A/PPPPPPPOrfvvvvvwv8A7777zzzzzzzzzzzzzz77777777777768nr3zz3LV/wC+++++/C/++++88888888888888+++++++++++md888d888888pY++++/C/wDvvvvPPPPPPPPPPPPPPvvvvvvvvvvlPPPPPPPPPPPKKPvvvvwv/vvvvPPPPPPPPPPPPPPvvvvvvvvvvlPPPPPPPPPPPKKPvvvuAtPvvvvPPPPPPPPPPPPPPvvvvvvvvvvlPPPPPPPPPPPKKPvvvFPqvPvvvPPPPPPPPPPPPPPvvvvvvvvvvlPPPPPPPPPPPKKPvvvFvrvPvvvPPPPPPPPPPPPPPvvvvvvvvvvmNtfPPPPPPPOcpPvvvrzv/vvvvPPPPPPPPPPPPPPvvvvvvvvvvvjoJc9PPOM0UDvvvvvvvvvvvvvPPPPPPPPPPPPPPvvvvvvvvvvvvvnrrXrnfjvvvvvvvvvvvvvvvPPPPPPPPPPPPPPvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvPPPPPPPPPPPPPPvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvPPPPPPPPPPPPPPvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvPPPPPPPPPPPPPPvvvvvvvvvvvvvvvvvvvvvssvvvvvvvvvvvvvPPPPPPPPPPPPPPvvvvu/wD77777777777776/zxb77777777777zzzzzzzzzzzzzz7776h3zf77777777777qM/L/hvf777777777zzzzzzzzzzzzzz7776jXgbrrb7777776xuPzzz49p/z/zT7777zzzzzzzzzzzzzb777769++7VZnL7DzSyE/777777605bx777767zzzzzzzzzzzwv777777777796fpwnB377777777777nz/AO+++9888888888888p8++++++++++++p842++++++++++++uPe+++++8888888888888Z+++++++++++++M/wDvvvvvvvvvvvvvvvvvvpPPPPPPPPPPPPPPPM/vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvuN/PPPPPPPPPPPPPPLU/vvvvvvvvvvvvvvvvvvvvvvvvvvvvvuBPPPPPPPPPPPPPPPPPLWvPvvvvvvvvvvvvvvvvvvvvvvvvvvrL/PPPPPPPPPPPPPPPPPPPH6/vPPPPPPPPPPPPPPPPPPPPPNNXvPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP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24gtjkqRiSKxKlzTzSef4e0w/rZjG7xclTK729YElf0azQPoYqb6fDHOjuEcJI5Xi/Q7BbfXJ9Vv7xa0nC87mq1Vb+g223vnnRohsCNo/gLzZ0lop1RWqqfPwoRp5kHEiChhaL4K62Zk3+6QZAvcz523209wfUSIGGJBfCT7ZHuDKnW6TAfl83bbAU+RBCGFjWfDPYwjVbOw5nm8oSgerPl4dpmTclgWaLCyd8UeOCSzyysMsdmsi1T43yYY0iRUbDcsnGLZIMXJfjzQ4kiiYetz6fhYFaWStLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLVpatLUmFQ0zDlvbQrXbw0mSf8AGT//xAAC/9oADAMBAAIAAwAAABDzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzMT2wwwwwwwwwwwwwwwwwwwwxy9Xjzzzzzzzzzzzzzzzzzzzzzb33333333333333333333333333293zzzzzzzzzzzzzzzzzz3/wB99999999999999999999999999999t/8APPPPPPPPPPPPPPLH/ffffffffffffffffffffffffffffffff/fPPPPPPPPPPPPPBvfffffffffffffffdMvfffffffffffffffXvPPPPPPPPPPPPP8A33333333333333jB5657HT33333333333325fzzzzzzzzzzzyT333333333333zK37//AP8A/r1tPfffffffffffV/PPPPPPPPPPPPPfffffffffcPD/AP8A/wD/AP8A/wD/AP8Adex99999999997888888888888299999999zU8//AP8A/wD/AP8A/wD/AP8A/wD/ALbO/ffffffffPPPPPPPPPPPPFvfffffNVH/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A+K1+999998888888888888W99999vT2//wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/APqXP73333zzzzzzzzzzzzxb33333335TX//AP8A/wD/AP8A/wD/AP8A/wD/AP8A+7DPwfvffffPPPPPPPPPPPPFvffffffffbMv/wD/AP8A/wD/AP8A/wD/AP8A/wCqz338H73333zzzzzzzzzzzzxb33333333333xzL//AP8A/wD/AP8A+3nPffffwfvffffPPPPPPPPPPPPFvfffffffffffffeOfv8A/wC5U9999999/B+99998888888888888W99999999999dpAACix9jCCARv8AffffwfvffffPPPPPPPPPPPPFvffffffffffVaQwwwwwwwwwwqfffffwfvffffPPPPPPPPPPPPFvffffffffffVaQwwwwwwwwwwqffffewt/ffffPPPPPPPPPPPPFvffffffffffVaQwwwwwwwwwwqffffwwQf/fffPPPPPPPPPPPPFvffffffffffVaQwwwwwwwwwwqffffwQRf/AH33zzzzzzzzzzzzxb33333333332uMQMMMMMMMMhtf33320z33333zzzzzzzzzzzzxb3333333333314OgsIIIIdwO/333333333333zzzzzzzzzzzzxb333333333333315mvPNeW/33333333333333zzzzzzzzzzzzxb333333333333333333333333333333333333zzzzzzzzzzzzxb333333333333333333333333333333333333zzzzzzzzzzzzxb333333333333333333333333333333333333zzzzzzzzzzzzxb3333333333333333333333vf333333333333zzzzzzzzzzzzxb33333rL33333333333333nzzP33333333333zzzzzzzzzzzzxb333292z333333333333ylhzRLjHz33333333zzzzzzzzzzzzxb3333vXwA/Dz333333zRmX3//AMtRFV1w399998888888888888X99999uu9faX+y9z/yl389999999P7q8s99997888888888888n9999999999+t/28wP8APffffffffffefP8A3332zzzzzzzzzzzzy/f333333333331/zjf3333333333323533333fzzzzzzzzzzzzxr3333333333333733333333333333333333LzzzzzzzzzzzzzyxX33333333333333333333333333333333vTzzzzzzzzzzzzzzz9X333333333333333333333333333333uXzzzzzzzzzzzzzzzzyln/333333333333333333333333332yzzzzzzzzzzzzzzzzzzzzzwv8A4wwwwwwwwwwwwwwwwwwwww98f88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888/8QANxEAAQMACAQDCAEDBQAAAAAAAQACAwQREzAxMkFREiAhQAUQYRQiQkRQg6HBgRVxgAYWM1KR/9oACAECAQE/AP8ADdsb3aIUfcoQxqwZsrBmysGbKwZsrBmysGbKwZsrBmysGbKwZsrBmysGbKwZsrBmysGbKwZsrBmysGbKwZsrBmysGbKwZsjAxGjnQpzHNxHasYXmoJkTW+p718IPVvQogg1EdlHGXn0QAAqHfyRh4TmlpqPYMYXuQADQB9BkYHj1RBBqN/Ezhb6nsQ0uwai0jEdjOz4hfRN4njsAxxQjA9fMxg+iLHC/IrBCc3hcRe0cYm+EZPohG0c5Y0osI9b6cdQb2DJdgE4IRIMaNLstacWoxbIgjG7nHuXsGQXIaTgEIt0ABhfkA4oxbItIxbcz5DewZBzhjnIRgY9e1MY06IscF/U6D7R7P7Sy02r15p8hvYMg5gajlQkB9Fj20kgDH6rjd/UeLi622P8AKZkZyz5DewZBcBxbgUJBqseyMg0RcXYlPyPXz/3v2mZGcs+Q3sGQ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" alt="ChairDesk logo" />
+        <div class="brand-copy"><strong>ChairDesk</strong><span>Analytics Suite</span></div>
+        <button class="sidebar-close" onclick="toggleSidebar()" aria-label="Close menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+
+      <div class="section-label">Workspace</div>
+      <nav class="side-nav">
+        <button class="side-link active" data-nav="overview" onclick="navigateTo('overview')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          <span>Overview</span>
+        </button>
+        <button class="side-link" data-nav="sete" onclick="navigateTo('sete')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h16"/><path d="M8 15l4-5 3 3 5-7"/></svg>
+          <span>SETE Analytics</span>
+        </button>
+        <button class="side-link" data-nav="risk" onclick="navigateTo('risk')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3L12 3z"/><path d="M12 9v5m0 3h.01"/></svg>
+          <span>Risk Monitor</span><span class="side-badge">2</span>
+        </button>
+        <button class="side-link" data-nav="courses" onclick="navigateTo('courses')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>
+          <span>Course Sections</span>
+        </button>
+        <button class="side-link" data-nav="guide" onclick="navigateTo('guide')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg>
+          <span>Component Guide</span>
+        </button>
+      </nav>
+
+      <div class="section-label">Quick Actions</div>
+      <nav class="side-nav">
+        <button class="side-link" onclick="togglePrivacyFromSidebar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+          <span id="privacyNavLabel">Privacy Mode: Off</span>
+        </button>
+        <button class="side-link" onclick="window.print()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6M7 18H5a2 2 0 01-2-2v-5a2 2 0 012-2h14a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M7 15h10v6H7z"/></svg>
+          <span>Print Report</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="system-card">
+        <div class="row"><span class="label">System status</span><span class="value"><span class="live-dot"></span>Live</span></div>
+        <div class="row"><span class="label">Data sources</span><span class="value">Portal + SETE</span></div>
+        <div class="row"><span class="label">Term</span><span class="value">AY 2026-27 · 1S</span></div>
+      </div>
+
+      <div class="side-user">
+        <div class="avatar">PC</div>
+        <div class="side-user-meta"><strong>Program Chair</strong><span>RBAC: Department Level</span></div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <div class="main-area">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn menu-btn" onclick="toggleSidebar()" aria-label="Open menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+          <div class="page-heading">
+            <h1>Dashboard Overview</h1>
+            <p>Program Chair Analytics &amp; Decision-Support System</p>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input type="search" id="tableSearch" placeholder="Search course or faculty..." oninput="queueFilter()" aria-label="Search course sections" />
+          </div>
+
+          <div class="notif-wrap">
+            <button class="icon-btn" onclick="toggleNotifications()" aria-label="Notifications">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+              <span class="notif-dot"></span>
+            </button>
+            <div class="notif-panel" id="notifPanel">
+              <h3>Active threshold alerts</h3>
+              <div class="notif-item"><strong>BAT 204-B · Critical academic + SETE</strong>At-risk rate 23.8% and Assessment Fairness 3.38 are beyond thresholds.</div>
+              <div class="notif-item amber"><strong>BAT 302-C · Low survey sample</strong>Response rate 56.0%; interpret the raw SETE score with caution.</div>
+            </div>
+          </div>
+
+          <button class="icon-btn" onclick="window.print()" aria-label="Print">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6M7 18H5a2 2 0 01-2-2v-5a2 2 0 012-2h14a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M7 15h10v6H7z"/></svg>
+          </button>
+
+          <div class="topbar-user">
+            <div class="avatar">PC</div>
+            <div class="topbar-user-meta"><strong>Program Chair</strong><span>Department Level</span></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="hero" id="overview">
+          <div>
+            <div class="hero-kicker"><span class="live-dot"></span>Live academic intelligence</div>
+            <h2>Welcome back, <span class="editable-app-name" id="appNameBadge" contenteditable="true" spellcheck="false" title="Click to customize App Name (auto-saves in browser)">ChairDesk</span></h2>
+            <p>Monitor course performance, teaching effectiveness, and student risk in one integrated view for AY 2026-2027, 1st Semester.</p>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat"><span>Sections monitored</span><strong>7</strong><small>Across 4 course clusters</small></div>
+            <div class="hero-stat"><span>Actions required</span><strong>2</strong><small>Sections above threshold</small></div>
+            <div class="hero-stat"><span>Model recall</span><strong>88.4%</strong><small>Part IV risk classifier</small></div>
+          </div>
+        </section>
+
+        <div class="view-bar">
+          <div class="view-tabs" role="tablist" aria-label="Dashboard views">
+            <button class="tab-btn active" id="tabMainBtn" role="tab" aria-selected="true" onclick="switchView('main')">Overview Dashboard</button>
+            <button class="tab-btn" id="tabGuideBtn" role="tab" aria-selected="false" onclick="switchView('guide')">Component Guide</button>
+          </div>
+          <div class="view-bar-note"><span class="chip">BAT 405</span> Integrated Case Study · Program Chair View</div>
+        </div>
+
+        <div class="view-stack" id="mainDashboardView" role="tabpanel" aria-labelledby="tabMainBtn">
+          <section class="control-card">
+            <div class="lead">
+              <div class="control-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+              </div>
+              <div><strong>Filters &amp; controls</strong><span>Refine the dashboard view</span></div>
+            </div>
+            <div class="slicers">
+              <div class="slicer">
+                <label for="termSelect">Academic Term Slicer</label>
+                <select id="termSelect" onchange="applyDashboardFilters()">
+                  <option value="2026-1">AY 2026-2027 · 1st Sem (Current)</option>
+                  <option value="2025-2">AY 2025-2026 · 2nd Sem</option>
+                  <option value="2025-1">AY 2025-2026 · 1st Sem</option>
+                </select>
+              </div>
+              <div class="slicer">
+                <label for="clusterSelect">Course Cluster / Year</label>
+                <select id="clusterSelect" onchange="applyDashboardFilters()">
+                  <option value="ALL">All BSBA-BA Courses (1st–4th Yr)</option>
+                  <option value="CORE">Core Analytics &amp; Programming</option>
+                  <option value="QUANT">Quantitative &amp; Statistics</option>
+                  <option value="CAPSTONE">Capstone &amp; Electives</option>
+                </select>
+              </div>
+              <div class="slicer">
+                <label for="alertSelect">Threshold Alert Filter</label>
+                <select id="alertSelect" onchange="applyDashboardFilters()">
+                  <option value="ALL">All Course Sections</option>
+                  <option value="FLAGGED">Flagged Alerts Only</option>
+                  <option value="OPTIMAL">Optimal / On-Target Only</option>
+                </select>
+              </div>
+            </div>
+            <div class="privacy-box" title="Protects confidential faculty names during committee meetings">
+              <input type="checkbox" id="privacyToggle" onchange="togglePrivacyMask()" />
+              <label for="privacyToggle">Privacy Mode</label>
+            </div>
+          </section>
+
+          <div class="print-col print-col-left">
+          <section class="alert-card" id="alerts">
+            <div class="alert-head">
+              <h3><span class="pulse"></span>3 sections flagged · 2 need immediate action</h3>
+              <span class="chip rose">Warning mechanism</span>
+            </div>
+            <div class="alert-list">
+              <div class="alert-item"><strong>[CRITICAL ACADEMIC + SETE] BAT 204-B:</strong> Midterm at-risk rate hit <strong>23.8%</strong> (&gt;20% limit) &amp; Assessment Fairness SETE dropped to <strong>3.38</strong> (&lt;3.50 threshold).</div>
+              <div class="alert-item"><strong>[DATA RELIABILITY] BAT 302-C:</strong> SETE response rate is <strong>56.0%</strong> (&lt;65% minimum). Interpret the raw SETE score (3.72) with caution.</div>
+            </div>
+          </section>
+
+          <section>
+            <div class="section-heading">
+              <div><h2>Key Performance Indicators</h2><p>Balanced view of academic operations and teaching effectiveness</p></div>
+              <span class="hint">Updated from Portal &amp; SETE systems</span>
+            </div>
+            <div class="kpi-grid" style="margin-top:12px;">
+              <article class="kpi-card kpi-blue">
+                <div class="kpi-top">
+                  <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-5 9 5-9 5-9-5z"/><path d="M7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg></div>
+                  <span class="kpi-source">Portal Grades</span>
+                </div>
+                <div class="kpi-label">Course Passing Rate</div>
+                <div class="kpi-value-row">
+                  <span class="kpi-value" id="kpiPassVal">89.4%</span>
+                  <svg class="spark" viewBox="0 0 80 30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 24L16 19L30 21L44 12L58 14L78 5" opacity="0.35" stroke-width="7" stroke-linejoin="round"/><path d="M2 24L16 19L30 21L44 12L58 14L78 5"/></svg>
+                </div>
+                <span class="kpi-delta delta-good" id="kpiPassDelta">▲ +1.4% vs Target</span>
+                <div class="kpi-footer"><span>Target <strong>≥ 88.0%</strong></span><span>DFW <strong>10.6%</strong></span></div>
+              </article>
+
+              <article class="kpi-card kpi-amber">
+                <div class="kpi-top">
+                  <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3L12 3z"/><path d="M12 9v5m0 3h.01"/></svg></div>
+                  <span class="kpi-source">ML Classifier</span>
+                </div>
+                <div class="kpi-label">Midterm At-Risk Flagged</div>
+                <div class="kpi-value-row">
+                  <span class="kpi-value" id="kpiRiskVal">8.6% <small>(42 Stu)</small></span>
+                  <svg class="spark" viewBox="0 0 80 30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 22L16 20L30 23L44 14L58 17L78 11" opacity="0.3" stroke-width="7" stroke-linejoin="round"/><path d="M2 22L16 20L30 23L44 14L58 17L78 11"/></svg>
+                </div>
+                <span class="kpi-delta delta-warn" id="kpiRiskDelta">1 Sec &gt; 20% Alert</span>
+                <div class="kpi-footer"><span>Target <strong>≤ 10.0%</strong></span><span>Advised <strong>38 / 42</strong></span></div>
+              </article>
+
+              <article class="kpi-card kpi-teal">
+                <div class="kpi-top">
+                  <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0112 0v2"/><circle cx="17" cy="9" r="2.5"/><path d="M16 15h5v5h-5z"/></svg></div>
+                  <span class="kpi-source">Enrollment</span>
+                </div>
+                <div class="kpi-label">Section Capacity Utilization</div>
+                <div class="kpi-value-row">
+                  <span class="kpi-value" id="kpiCapVal">92.5%</span>
+                  <svg class="spark" viewBox="0 0 80 30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20L16 18L30 16L44 17L58 12L78 9" opacity="0.3" stroke-width="7" stroke-linejoin="round"/><path d="M2 20L16 18L30 16L44 17L58 12L78 9"/></svg>
+                </div>
+                <span class="kpi-delta delta-good">Optimal Load</span>
+                <div class="kpi-footer"><span>Target <strong>85–100%</strong></span><span>Enrolled <strong>488/528</strong></span></div>
+              </article>
+
+              <article class="kpi-card kpi-violet">
+                <div class="kpi-top">
+                  <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/></svg></div>
+                  <span class="kpi-source">SETE System</span>
+                </div>
+                <div class="kpi-label">Department Mean SETE</div>
+                <div class="kpi-value-row">
+                  <span class="kpi-value" id="kpiSeteVal">4.34 <small>/ 5.00</small></span>
+                  <svg class="spark" viewBox="0 0 80 30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 22L16 19L30 20L44 14L58 13L78 7" opacity="0.3" stroke-width="7" stroke-linejoin="round"/><path d="M2 22L16 19L30 20L44 14L58 13L78 7"/></svg>
+                </div>
+                <span class="kpi-delta delta-good" id="kpiSeteDelta">▲ +0.14 vs Target</span>
+                <div class="kpi-footer"><span>Target <strong>≥ 4.20</strong></span><span>Lowest <strong>Assessment 4.12</strong></span></div>
+              </article>
+
+              <article class="kpi-card kpi-green">
+                <div class="kpi-top">
+                  <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 01-11.5 7.2L4 20l1-4.5A8 8 0 1121 12z"/><path d="M9 12h6"/></svg></div>
+                  <span class="kpi-source">SETE Validity</span>
+                </div>
+                <div class="kpi-label">SETE Response Rate</div>
+                <div class="kpi-value-row">
+                  <span class="kpi-value" id="kpiRespVal">84.2%</span>
+                  <svg class="spark" viewBox="0 0 80 30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21L16 17L30 19L44 13L58 15L78 8" opacity="0.3" stroke-width="7" stroke-linejoin="round"/><path d="M2 21L16 17L30 19L44 13L58 15L78 8"/></svg>
+                </div>
+                <span class="kpi-delta delta-warn">1 Sec &lt; 65% Min</span>
+                <div class="kpi-footer"><span>Target <strong>≥ 80.0%</strong></span><span>Floor <strong>&lt; 65.0%</strong></span></div>
+              </article>
+            </div>
+          </section>
+
+          <section>
+            <div class="section-heading">
+              <div><h2>Analytics &amp; Diagnostics</h2><p>Cross-system correlations and predictive risk signals</p></div>
+              <span class="hint">Hover chart marks to inspect data points</span>
+            </div>
+            <div class="chart-grid" style="margin-top:12px;">
+              <article class="card" id="sete">
+                <div class="card-head">
+                  <div class="card-title"><h3>SETE Rubric Dimensions Across Semesters</h3><p>Longitudinal comparison vs. 4.20 target benchmark</p></div>
+                  <span class="chip violet">SETE Trends</span>
+                </div>
+                <div class="legend">
+                  <span><i style="background:#4f46e5"></i>Subject Mastery</span>
+                  <span><i style="background:#0d9488"></i>Instructional Delivery</span>
+                  <span><i style="background:#6366f1"></i>Class Management</span>
+                  <span><i style="background:#f59e0b"></i>Assessment Fairness</span>
+                </div>
+                <div class="chart-box">
+                  <svg viewBox="0 0 420 200" aria-label="SETE Dimensions Across Semesters Grouped Bar and Target Line Chart">
+                    <line x1="36" y1="20" x2="405" y2="20" stroke="#e7ecf4" stroke-dasharray="3,3" />
+                    <line x1="36" y1="60" x2="405" y2="60" stroke="#e7ecf4" stroke-dasharray="3,3" />
+                    <line x1="36" y1="100" x2="405" y2="100" stroke="#e7ecf4" stroke-dasharray="3,3" />
+                    <line x1="36" y1="140" x2="405" y2="140" stroke="#e7ecf4" stroke-dasharray="3,3" />
+                    <line x1="36" y1="170" x2="405" y2="170" stroke="#cbd5e1" />
+                    <text x="30" y="24" text-anchor="end" font-size="9.5" fill="#94a3b8">5.0</text>
+                    <text x="30" y="64" text-anchor="end" font-size="9.5" fill="#94a3b8">4.5</text>
+                    <text x="30" y="104" text-anchor="end" font-size="9.5" fill="#94a3b8">4.0</text>
+                    <text x="30" y="144" text-anchor="end" font-size="9.5" fill="#94a3b8">3.5</text>
+                    <line x1="36" y1="84" x2="405" y2="84" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="5,3" />
+                    <rect x="315" y="72" width="88" height="14" rx="4" fill="#fff1f2" />
+                    <text x="359" y="82" text-anchor="middle" font-size="8.5" font-weight="700" fill="#be123c">Target ≥ 4.20</text>
+                    <g class="semester-group" data-term="2024-1" transform="translate(52,0)">
+                      <rect class="bar" x="0" y="54" width="14" height="116" rx="3" fill="#4f46e5"><title>Subject Mastery 1S 24-25: 4.45</title></rect>
+                      <rect class="bar" x="16" y="72" width="14" height="98" rx="3" fill="#0d9488"><title>Instructional Delivery 1S 24-25: 4.23</title></rect>
+                      <rect class="bar" x="32" y="68" width="14" height="102" rx="3" fill="#6366f1"><title>Class Management 1S 24-25: 4.28</title></rect>
+                      <rect class="bar" x="48" y="96" width="14" height="74" rx="3" fill="#f59e0b"><title>Assessment Fairness 1S 24-25: 3.85</title></rect>
+                      <text x="31" y="185" text-anchor="middle" font-size="9.5" font-weight="600" fill="#64748b">1S 24-25</text>
+                    </g>
+                    <g class="semester-group" data-term="2025-1" transform="translate(142,0)">
+                      <rect class="bar" x="0" y="50" width="14" height="120" rx="3" fill="#4f46e5"><title>Subject Mastery 2S 24-25: 4.50</title></rect>
+                      <rect class="bar" x="16" y="68" width="14" height="102" rx="3" fill="#0d9488"><title>Instructional Delivery 2S 24-25: 4.28</title></rect>
+                      <rect class="bar" x="32" y="64" width="14" height="106" rx="3" fill="#6366f1"><title>Class Management 2S 24-25: 4.33</title></rect>
+                      <rect class="bar" x="48" y="92" width="14" height="78" rx="3" fill="#f59e0b"><title>Assessment Fairness 2S 24-25: 3.90</title></rect>
+                      <text x="31" y="185" text-anchor="middle" font-size="9.5" font-weight="600" fill="#64748b">2S 24-25</text>
+                    </g>
+                    <g class="semester-group" data-term="2025-2" transform="translate(232,0)">
+                      <rect class="bar" x="0" y="44" width="14" height="126" rx="3" fill="#4f46e5"><title>Subject Mastery 1S 25-26: 4.55</title></rect>
+                      <rect class="bar" x="16" y="62" width="14" height="108" rx="3" fill="#0d9488"><title>Instructional Delivery 1S 25-26: 4.33</title></rect>
+                      <rect class="bar" x="32" y="60" width="14" height="110" rx="3" fill="#6366f1"><title>Class Management 1S 25-26: 4.36</title></rect>
+                      <rect class="bar" x="48" y="88" width="14" height="82" rx="3" fill="#f59e0b"><title>Assessment Fairness 1S 25-26: 4.02</title></rect>
+                      <text x="31" y="185" text-anchor="middle" font-size="9.5" font-weight="600" fill="#64748b">1S 25-26</text>
+                    </g>
+                    <g class="semester-group" data-term="2026-1" transform="translate(322,0)">
+                      <rect class="bar" x="0" y="38" width="14" height="132" rx="3" fill="#4f46e5"><title>Subject Mastery Current: 4.58</title></rect>
+                      <rect class="bar" x="16" y="56" width="14" height="114" rx="3" fill="#0d9488"><title>Instructional Delivery Current: 4.36</title></rect>
+                      <rect class="bar" x="32" y="52" width="14" height="118" rx="3" fill="#6366f1"><title>Class Management Current: 4.41</title></rect>
+                      <rect class="bar" x="48" y="90" width="14" height="80" rx="3" fill="#f59e0b"><title>Assessment Fairness Current: 4.12</title></rect>
+                      <text x="7" y="34" text-anchor="middle" font-size="8.5" font-weight="700" fill="#4338ca">4.58</text>
+                      <text x="23" y="52" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0f766e">4.36</text>
+                      <text x="39" y="48" text-anchor="middle" font-size="8.5" font-weight="700" fill="#4f46e5">4.41</text>
+                      <text x="55" y="86" text-anchor="middle" font-size="8.5" font-weight="700" fill="#b45309">4.12</text>
+                      <text x="31" y="185" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0f172a">Current</text>
+                    </g>
+                  </svg>
+                </div>
+              </article>
+
+              <article class="card">
+                <div class="card-head">
+                  <div class="card-title"><h3>Passing Rate vs. SETE Score Matrix</h3><p>Portal Passing % × SETE Rating × Enrollment (bubble size)</p></div>
+                  <span class="chip green">Portal × SETE</span>
+                </div>
+                <div class="legend">
+                  <span><i style="background:#10b981"></i>Model Section</span>
+                  <span><i style="background:#8b5cf6"></i>High Rigor</span>
+                  <span><i style="background:#f59e0b"></i>Low Sample</span>
+                  <span><i style="background:#e11d48"></i>Critical</span>
+                </div>
+                <div class="chart-box">
+                  <svg viewBox="0 0 440 200" aria-label="Quadrant Scatter Plot of Course Passing Rate vs SETE Rating">
+                    <rect x="42" y="15" width="158" height="80" fill="#f5f3ff" />
+                    <rect x="200" y="15" width="220" height="80" fill="#f0fdf4" />
+                    <rect x="42" y="95" width="158" height="75" fill="#fff1f2" />
+                    <rect x="200" y="95" width="220" height="75" fill="#fffbeb" />
+                    <line x1="200" y1="15" x2="200" y2="170" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4,3" />
+                    <line x1="42" y1="95" x2="420" y2="95" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4,3" />
+                    <text x="50" y="28" font-size="8.5" font-weight="700" fill="#7c3aed">Q2: High Rigor (Add Peer Tutors)</text>
+                    <text x="412" y="28" text-anchor="end" font-size="8.5" font-weight="700" fill="#15803d">Q1: Model Sections</text>
+                    <text x="50" y="163" font-size="8.5" font-weight="700" fill="#be123c">Q4: Critical Alert</text>
+                    <text x="412" y="163" text-anchor="end" font-size="8.5" font-weight="700" fill="#b45309">Q3: Check Rigor / Sample</text>
+                    <line x1="42" y1="170" x2="420" y2="170" stroke="#64748b" />
+                    <line x1="42" y1="15" x2="42" y2="170" stroke="#64748b" />
+                    <text x="36" y="22" text-anchor="end" font-size="9" fill="#94a3b8">4.8</text>
+                    <text x="36" y="98" text-anchor="end" font-size="9" font-weight="700" fill="#0f172a">4.2</text>
+                    <text x="36" y="142" text-anchor="end" font-size="9" fill="#94a3b8">3.5</text>
+                    <text x="65" y="184" text-anchor="middle" font-size="9" fill="#94a3b8">75%</text>
+                    <text x="200" y="184" text-anchor="middle" font-size="9" font-weight="700" fill="#0f172a">88% Target</text>
+                    <text x="350" y="184" text-anchor="middle" font-size="9" fill="#94a3b8">95%</text>
+                    <text x="235" y="196" text-anchor="middle" font-size="9.5" font-weight="600" fill="#64748b">Course Passing Rate (%) →</text>
+                    <g class="scatter-point" data-cluster="CORE" data-status="FLAGGED">
+                      <circle cx="82" cy="146" r="12" fill="#e11d48" fill-opacity="0.85" stroke="#9f1239" stroke-width="1.5"><title>BAT 204-B · Critical Intervention</title></circle>
+                      <text x="82" y="130" text-anchor="middle" font-size="8.5" font-weight="800" fill="#9f1239">BAT 204-B ⚠</text>
+                    </g>
+                    <g class="scatter-point" data-cluster="QUANT" data-status="FLAGGED">
+                      <circle cx="142" cy="58" r="11" fill="#8b5cf6" fill-opacity="0.82" stroke="#6d28d9" stroke-width="1.5"><title>BAT 201-A · High Rigor</title></circle>
+                      <text x="142" y="43" text-anchor="middle" font-size="8.5" font-weight="700" fill="#6d28d9">BAT 201-A</text>
+                    </g>
+                    <g class="scatter-point" data-cluster="CORE" data-status="FLAGGED">
+                      <circle cx="240" cy="122" r="10" fill="#f59e0b" fill-opacity="0.85" stroke="#b45309" stroke-width="1.5"><title>BAT 302-C · 56% Response Rate</title></circle>
+                      <text x="240" y="108" text-anchor="middle" font-size="8.5" font-weight="700" fill="#b45309">BAT 302-C (56%)</text>
+                    </g>
+                    <g class="scatter-point" data-cluster="CAPSTONE" data-status="OPTIMAL">
+                      <circle cx="295" cy="48" r="11" fill="#10b981" fill-opacity="0.82" stroke="#047857" stroke-width="1.5"><title>BAT 405-A · Model Section</title></circle>
+                      <text x="295" y="34" text-anchor="middle" font-size="8.5" font-weight="700" fill="#047857">BAT 405-A</text>
+                    </g>
+                    <g class="scatter-point" data-cluster="CAPSTONE" data-status="OPTIMAL">
+                      <circle cx="342" cy="38" r="10" fill="#10b981" fill-opacity="0.82" stroke="#047857" stroke-width="1.5"><title>BAT 401-A · Model Section</title></circle>
+                      <text x="342" y="24" text-anchor="middle" font-size="8.5" font-weight="700" fill="#047857">BAT 401-A</text>
+                    </g>
+                    <g class="scatter-point" data-cluster="CORE" data-status="OPTIMAL">
+                      <circle cx="320" cy="70" r="11" fill="#10b981" fill-opacity="0.82" stroke="#047857" stroke-width="1.5"><title>BAT 102-A · Model Section</title></circle>
+                      <text x="320" y="87" text-anchor="middle" font-size="8.5" font-weight="700" fill="#047857">BAT 102-A</text>
+                    </g>
+                    <g class="scatter-point" data-cluster="QUANT" data-status="OPTIMAL">
+                      <circle cx="255" cy="62" r="10" fill="#10b981" fill-opacity="0.82" stroke="#047857" stroke-width="1.5"><title>BAT 305-B · Model Section</title></circle>
+                      <text x="255" y="48" text-anchor="middle" font-size="8.5" font-weight="700" fill="#047857">BAT 305-B</text>
+                    </g>
+                  </svg>
+                </div>
+              </article>
+
+              <article class="card" id="risk">
+                <div class="card-head">
+                  <div class="card-title"><h3>Predicted Student Risk Breakdown</h3><p>Classification model output at Week 8 midterm checkpoint</p></div>
+                  <span class="chip amber">ML Risk Model</span>
+                </div>
+                <div class="legend">
+                  <span><i style="background:#e11d48"></i>High Risk (p ≥ 0.70)</span>
+                  <span><i style="background:#f59e0b"></i>Moderate</span>
+                  <span><i style="background:#10b981"></i>On-Track</span>
+                </div>
+                <div class="risk-rows">
+                  <div class="risk-row" data-cluster="CORE" data-status="FLAGGED">
+                    <div class="risk-meta"><span><strong>BAT 204-B</strong> <em>· Database Mgmt</em></span><span style="color:#be123c;font-weight:800;">23.8% High (15) ⚠</span></div>
+                    <div class="bar-track"><div class="seg-high" style="width:23.8%"></div><div class="seg-mod" style="width:17.5%"></div><div class="seg-low" style="width:58.7%"></div></div>
+                  </div>
+                  <div class="risk-row" data-cluster="QUANT" data-status="FLAGGED">
+                    <div class="risk-meta"><span><strong>BAT 201-A</strong> <em>· Statistical Modeling</em></span><span style="color:#7c3aed;font-weight:700;">14.5% High (9)</span></div>
+                    <div class="bar-track"><div class="seg-high" style="width:14.5%"></div><div class="seg-mod" style="width:16.0%"></div><div class="seg-low" style="width:69.5%"></div></div>
+                  </div>
+                  <div class="risk-row" data-cluster="CORE" data-status="FLAGGED">
+                    <div class="risk-meta"><span><strong>BAT 302-C</strong> <em>· Predictive Analytics</em></span><span style="color:#b45309;font-weight:700;">9.6% High (6)</span></div>
+                    <div class="bar-track"><div class="seg-high" style="width:9.6%"></div><div class="seg-mod" style="width:12.4%"></div><div class="seg-low" style="width:78.0%"></div></div>
+                  </div>
+                  <div class="risk-row" data-cluster="QUANT" data-status="OPTIMAL">
+                    <div class="risk-meta"><span><strong>BAT 305-B</strong> <em>· Operations Research</em></span><span style="color:#15803d;">6.8% High (4)</span></div>
+                    <div class="bar-track"><div class="seg-high" style="width:6.8%"></div><div class="seg-mod" style="width:10.2%"></div><div class="seg-low" style="width:83.0%"></div></div>
+                  </div>
+                  <div class="risk-row" data-cluster="CORE" data-status="OPTIMAL">
+                    <div class="risk-meta"><span><strong>BAT 102-A</strong> <em>· Intro to Programming</em></span><span style="color:#15803d;">6.2% High (4)</span></div>
+                    <div class="bar-track"><div class="seg-high" style="width:6.2%"></div><div class="seg-mod" style="width:9.8%"></div><div class="seg-low" style="width:84.0%"></div></div>
+                  </div>
+                  <div class="risk-row" data-cluster="CAPSTONE" data-status="OPTIMAL">
+                    <div class="risk-meta"><span><strong>BAT 405-A &amp; 401-A</strong> <em>· Senior Analytics</em></span><span style="color:#15803d;">3.4% High (4)</span></div>
+                    <div class="bar-track"><div class="seg-high" style="width:3.4%"></div><div class="seg-mod" style="width:6.6%"></div><div class="seg-low" style="width:90.0%"></div></div>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+          </div>
+
+          <div class="print-col print-col-right">
+          <section>
+            <div class="section-heading">
+              <div><h2>Operational Insights</h2><p>Seat utilization, term momentum, and concentration of flagged students</p></div>
+              <span class="hint">Click a capacity bar to inspect the section</span>
+            </div>
+            <div class="insight-grid" style="margin-top:12px;">
+              <article class="card">
+                <div class="card-head">
+                  <div class="card-title"><h3>Section Capacity Utilization</h3><p>Enrollment load vs. 85–100% healthy band</p></div>
+                  <span class="chip teal">Portal Enrollment</span>
+                </div>
+                <div class="capacity-list">
+                  <div class="capacity-row over active" data-cluster="CORE" data-status="FLAGGED" title="BAT 204-B: 63 of 60 seats" onclick="focusCourse('BAT 204-B', this)">
+                    <strong>BAT 204-B</strong>
+                    <div class="capacity-track"><div class="capacity-fill" style="width:100%"></div><div class="capacity-band"></div></div>
+                    <span class="capacity-value" style="color:#be123c;">105%</span>
+                  </div>
+                  <div class="capacity-row" data-cluster="QUANT" data-status="FLAGGED" title="BAT 201-A: 57 of 60 seats" onclick="focusCourse('BAT 201-A', this)">
+                    <strong>BAT 201-A</strong>
+                    <div class="capacity-track"><div class="capacity-fill" style="width:95%"></div><div class="capacity-band"></div></div>
+                    <span class="capacity-value">95%</span>
+                  </div>
+                  <div class="capacity-row under" data-cluster="CORE" data-status="FLAGGED" title="BAT 302-C: 50 of 60 seats" onclick="focusCourse('BAT 302-C', this)">
+                    <strong>BAT 302-C</strong>
+                    <div class="capacity-track"><div class="capacity-fill" style="width:83%"></div><div class="capacity-band"></div></div>
+                    <span class="capacity-value" style="color:#b45309;">83%</span>
+                  </div>
+                  <div class="capacity-row" data-cluster="CAPSTONE" data-status="OPTIMAL" title="BAT 405-A: 58 of 60 seats" onclick="focusCourse('BAT 405-A', this)">
+                    <strong>BAT 405-A</strong>
+                    <div class="capacity-track"><div class="capacity-fill" style="width:97%"></div><div class="capacity-band"></div></div>
+                    <span class="capacity-value">97%</span>
+                  </div>
+                  <div class="capacity-row" data-cluster="CORE" data-status="OPTIMAL" title="BAT 102-A: 55 of 60 seats" onclick="focusCourse('BAT 102-A', this)">
+                    <strong>BAT 102-A</strong>
+                    <div class="capacity-track"><div class="capacity-fill" style="width:92%"></div><div class="capacity-band"></div></div>
+                    <span class="capacity-value">92%</span>
+                  </div>
+                  <div class="capacity-row" data-cluster="QUANT" data-status="OPTIMAL" title="BAT 305-B: 58 of 60 seats" onclick="focusCourse('BAT 305-B', this)">
+                    <strong>BAT 305-B</strong>
+                    <div class="capacity-track"><div class="capacity-fill" style="width:97%"></div><div class="capacity-band"></div></div>
+                    <span class="capacity-value">97%</span>
+                  </div>
+                  <div class="capacity-row" data-cluster="CAPSTONE" data-status="OPTIMAL" title="BAT 401-A: 56 of 60 seats" onclick="focusCourse('BAT 401-A', this)">
+                    <strong>BAT 401-A</strong>
+                    <div class="capacity-track"><div class="capacity-fill" style="width:93%"></div><div class="capacity-band"></div></div>
+                    <span class="capacity-value">93%</span>
+                  </div>
+                </div>
+                <div class="capacity-note"><i></i>Shaded zone = target load (85–100%)</div>
+              </article>
+
+              <article class="card">
+                <div class="card-head">
+                  <div class="card-title"><h3>Term Momentum: Passing vs. Response</h3><p>Academic operations and SETE validity side by side</p></div>
+                  <span class="chip brand">3-Term Trend</span>
+                </div>
+                <div class="trend-legend">
+                  <span><i style="background:#4f46e5"></i>Passing rate</span>
+                  <span><i style="background:#0d9488"></i>SETE response rate</span>
+                </div>
+                <div class="chart-box trend-chart">
+                  <svg viewBox="0 0 400 190" aria-label="Passing Rate and SETE Response Rate Trend Across Three Academic Terms">
+                    <rect class="term-band" data-term="2025-1" x="65" y="20" width="50" height="130" rx="6" />
+                    <rect class="term-band" data-term="2025-2" x="185" y="20" width="50" height="130" rx="6" />
+                    <rect class="term-band active" data-term="2026-1" x="305" y="20" width="50" height="130" rx="6" />
+                    <line class="grid-line" x1="45" y1="20" x2="380" y2="20" />
+                    <line class="grid-line" x1="45" y1="52.5" x2="380" y2="52.5" />
+                    <line class="grid-line" x1="45" y1="85" x2="380" y2="85" />
+                    <line class="grid-line" x1="45" y1="117.5" x2="380" y2="117.5" />
+                    <line class="axis-line" x1="45" y1="150" x2="380" y2="150" />
+                    <line class="axis-line" x1="45" y1="20" x2="45" y2="150" />
+                    <text x="39" y="24" text-anchor="end" font-size="9" fill="#94a3b8">95</text>
+                    <text x="39" y="56.5" text-anchor="end" font-size="9" fill="#94a3b8">90</text>
+                    <text x="39" y="89" text-anchor="end" font-size="9" fill="#94a3b8">85</text>
+                    <text x="39" y="121.5" text-anchor="end" font-size="9" fill="#94a3b8">80</text>
+                    <text x="39" y="154" text-anchor="end" font-size="9" fill="#94a3b8">75</text>
+                    <line class="target-pass" x1="45" y1="65.5" x2="380" y2="65.5" />
+                    <line class="target-resp" x1="45" y1="117.5" x2="380" y2="117.5" />
+                    <text x="376" y="62" text-anchor="end" font-size="8" font-weight="700" fill="#e11d48">Pass ≥ 88%</text>
+                    <text x="376" y="129" text-anchor="end" font-size="8" font-weight="700" fill="#b45309">Resp ≥ 80%</text>
+                    <path class="line-pass" d="M90 72.7 L210 64.9 L330 56.4" />
+                    <path class="line-resp" d="M90 121.4 L210 107.8 L330 90.2" />
+                    <g fill="#4f46e5">
+                      <circle cx="90" cy="72.7" r="4"><title>1S 25-26 · Passing 86.9%</title></circle>
+                      <circle cx="210" cy="64.9" r="4"><title>2S 25-26 · Passing 88.1%</title></circle>
+                      <circle cx="330" cy="56.4" r="4.5"><title>1S 26-27 · Passing 89.4%</title></circle>
+                    </g>
+                    <g fill="#0d9488">
+                      <circle cx="90" cy="121.4" r="4"><title>1S 25-26 · Response 79.4%</title></circle>
+                      <circle cx="210" cy="107.8" r="4"><title>2S 25-26 · Response 81.5%</title></circle>
+                      <circle cx="330" cy="90.2" r="4.5"><title>1S 26-27 · Response 84.2%</title></circle>
+                    </g>
+                    <text class="term-label" data-term="2025-1" x="90" y="171" text-anchor="middle">1S 25-26</text>
+                    <text class="term-label" data-term="2025-2" x="210" y="171" text-anchor="middle">2S 25-26</text>
+                    <text class="term-label active" data-term="2026-1" x="330" y="171" text-anchor="middle">1S 26-27</text>
+                    <text x="212" y="187" text-anchor="middle" font-size="9" font-weight="600" fill="#94a3b8">Academic term →</text>
+                  </svg>
+                </div>
+              </article>
+
+              <article class="card">
+                <div class="card-head">
+                  <div class="card-title"><h3 id="donutTitle">Where the 42 At-Risk Students Are</h3><p>Share of flagged students by course section</p></div>
+                  <span class="chip rose">ML Output</span>
+                </div>
+                <div class="donut-body">
+                  <div class="donut-wrap">
+                    <svg viewBox="0 0 120 120" aria-label="Donut chart of at-risk student distribution by course">
+                      <circle cx="60" cy="60" r="44" stroke="#eef2f7" />
+                      <circle id="donutSeg1" cx="60" cy="60" r="44" stroke="#e11d48" stroke-dasharray="98.75 276.46" />
+                      <circle id="donutSeg2" cx="60" cy="60" r="44" stroke="#8b5cf6" stroke-dasharray="59.24 276.46" stroke-dashoffset="-98.75" />
+                      <circle id="donutSeg3" cx="60" cy="60" r="44" stroke="#f59e0b" stroke-dasharray="39.49 276.46" stroke-dashoffset="-157.99" />
+                      <circle id="donutSeg4" cx="60" cy="60" r="44" stroke="#10b981" stroke-dasharray="78.98 276.46" stroke-dashoffset="-197.48" />
+                    </svg>
+                    <div class="donut-center"><strong id="donutTotal">42</strong><span id="donutSubtitle">flagged students</span></div>
+                  </div>
+                  <div class="donut-legend">
+                    <div class="donut-row" id="donutLegend1"><i style="background:#e11d48"></i><span>BAT 204-B</span><b>15 · 35.7%</b></div>
+                    <div class="donut-row" id="donutLegend2"><i style="background:#8b5cf6"></i><span>BAT 201-A</span><b>9 · 21.4%</b></div>
+                    <div class="donut-row" id="donutLegend3"><i style="background:#f59e0b"></i><span>BAT 302-C</span><b>6 · 14.3%</b></div>
+                    <div class="donut-row" id="donutLegend4"><i style="background:#10b981"></i><span>Others (4 courses)</span><b>12 · 28.6%</b></div>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section id="courses">
+            <div class="section-heading">
+              <div><h2>Course-Section Monitoring &amp; Decision Table</h2><p>Click any row to inspect SETE dimensions and recommended action</p></div>
+              <span class="hint">Portal + SETE + ML risk signals</span>
+            </div>
+            <div class="bottom-grid" style="margin-top:12px;">
+              <article class="card">
+                <div class="card-head">
+                  <div class="card-title"><h3>Integrated Section Status</h3><p>Enrollment, grades, SETE confidence, and chair action</p></div>
+                  <div class="table-tools"><span class="table-count" id="rowCount">5 of 5 sections</span></div>
+                </div>
+                <div class="table-scroll">
+                  <table id="sectionTable">
+                    <thead>
+                      <tr>
+                        <th>Course &amp; Sec</th>
+                        <th>Assigned Faculty</th>
+                        <th>Cap. Util</th>
+                        <th>Passing %</th>
+                        <th>At-Risk</th>
+                        <th>Mean SETE</th>
+                        <th>Resp. Rate</th>
+                        <th>Alert Status &amp; Recommended Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="clickable-row selected-row" data-cluster="CORE" data-status="FLAGGED" onclick="selectCourseRow(this, 'BAT 204-B • Database Management', 'Prof. R. Mendoza', 'FAC-104', '3.78', '3.45', '3.52', '3.38', '76.2%', '88.9%', 'High Midterm Failure (23.8%) + Low Assessment Fairness SETE (3.38). Schedule syllabus rubric calibration &amp; mandatory peer tutoring.')">
+                        <td><span class="course-code">BAT 204-B</span></td>
+                        <td class="faculty-cell" data-name="Prof. R. Mendoza" data-code="FAC-104">Prof. R. Mendoza</td>
+                        <td class="mono">105% (63/60)</td>
+                        <td class="mono" style="color:#be123c;font-weight:800;">76.2%</td>
+                        <td class="mono" style="color:#be123c;font-weight:800;">23.8% (15)</td>
+                        <td class="mono" style="color:#be123c;font-weight:800;">3.53 / 5.0</td>
+                        <td class="mono">88.9%</td>
+                        <td><span class="status-pill pill-critical">Critical: Coaching + Tutoring</span></td>
+                      </tr>
+                      <tr class="clickable-row" data-cluster="QUANT" data-status="FLAGGED" onclick="selectCourseRow(this, 'BAT 201-A • Statistical Modeling', 'Dr. L. Villanueva', 'FAC-108', '4.72', '4.40', '4.45', '4.28', '81.8%', '91.2%', 'High SETE (4.46) confirms strong teaching, but high course difficulty drives 14.5% risk. Deploy supplemental lab hours (not faculty remediation).')">
+                        <td><span class="course-code">BAT 201-A</span></td>
+                        <td class="faculty-cell" data-name="Dr. L. Villanueva" data-code="FAC-108">Dr. L. Villanueva</td>
+                        <td class="mono">95% (57/60)</td>
+                        <td class="mono" style="color:#7c3aed;font-weight:800;">81.8%</td>
+                        <td class="mono" style="color:#7c3aed;font-weight:800;">14.5% (9)</td>
+                        <td class="mono" style="color:#15803d;font-weight:800;">4.46 / 5.0</td>
+                        <td class="mono">91.2%</td>
+                        <td><span class="status-pill pill-rigor">High Rigor: Add Lab Tutors</span></td>
+                      </tr>
+                      <tr class="clickable-row" data-cluster="CORE" data-status="FLAGGED" onclick="selectCourseRow(this, 'BAT 302-C • Predictive Analytics', 'Prof. J. Bautista', 'FAC-112', '4.05', '3.68', '3.60', '3.55', '90.0%', '56.0%', 'WARNING: SETE Response Rate is only 56.0% (&lt;65% minimum floor). Do not use raw 3.72 SETE for personnel evaluation; trigger student portal reminder.')">
+                        <td><span class="course-code">BAT 302-C</span></td>
+                        <td class="faculty-cell" data-name="Prof. J. Bautista" data-code="FAC-112">Prof. J. Bautista</td>
+                        <td class="mono">83% (50/60)</td>
+                        <td class="mono">90.0%</td>
+                        <td class="mono">9.6% (6)</td>
+                        <td class="mono">3.72 / 5.0</td>
+                        <td class="mono" style="color:#b45309;font-weight:800;">56.0% ⚠</td>
+                        <td><span class="status-pill pill-caution">Low Sample: Hold Judgment</span></td>
+                      </tr>
+                      <tr class="clickable-row" data-cluster="CAPSTONE" data-status="OPTIMAL" onclick="selectCourseRow(this, 'BAT 405-A • Analytics Application', 'Dr. A. Santos', 'FAC-101', '4.80', '4.68', '4.60', '4.56', '94.8%', '93.1%', 'Model Section: High student retention (94.8%) and exemplary SETE across all 4 rubric dimensions (4.66). Recommend as Faculty Peer Mentor.')">
+                        <td><span class="course-code">BAT 405-A</span></td>
+                        <td class="faculty-cell" data-name="Dr. A. Santos" data-code="FAC-101">Dr. A. Santos</td>
+                        <td class="mono">97% (58/60)</td>
+                        <td class="mono" style="color:#15803d;font-weight:800;">94.8%</td>
+                        <td class="mono">3.4% (2)</td>
+                        <td class="mono" style="color:#15803d;font-weight:800;">4.66 / 5.0</td>
+                        <td class="mono">93.1%</td>
+                        <td><span class="status-pill pill-optimal">Model Section: Peer Mentor</span></td>
+                      </tr>
+                      <tr class="clickable-row" data-cluster="CORE" data-status="OPTIMAL" onclick="selectCourseRow(this, 'BAT 102-A • Intro to Programming', 'Prof. M. Reyes', 'FAC-115', '4.55', '4.38', '4.42', '4.25', '91.2%', '86.0%', 'On-Target Performance: Balanced section utilization (92%), strong passing rate (91.2%), and solid SETE response confidence (86.0%).')">
+                        <td><span class="course-code">BAT 102-A</span></td>
+                        <td class="faculty-cell" data-name="Prof. M. Reyes" data-code="FAC-115">Prof. M. Reyes</td>
+                        <td class="mono">92% (55/60)</td>
+                        <td class="mono" style="color:#15803d;font-weight:800;">91.2%</td>
+                        <td class="mono">6.2% (4)</td>
+                        <td class="mono" style="color:#15803d;font-weight:800;">4.40 / 5.0</td>
+                        <td class="mono">86.0%</td>
+                        <td><span class="status-pill pill-optimal">Optimal: Maintain Load</span></td>
+                      </tr>
+                      <tr class="clickable-row" data-cluster="QUANT" data-status="OPTIMAL" onclick="selectCourseRow(this, 'BAT 305-B • Operations Research', 'Dr. H. Cruz', 'FAC-121', '4.60', '4.48', '4.52', '4.44', '92.5%', '89.0%', 'Stable section: 97% seat utilization, 92.5% passing rate, and consistent SETE across all four rubric dimensions. Maintain current teaching load.')">
+                        <td><span class="course-code">BAT 305-B</span></td>
+                        <td class="faculty-cell" data-name="Dr. H. Cruz" data-code="FAC-121">Dr. H. Cruz</td>
+                        <td class="mono">97% (58/60)</td>
+                        <td class="mono" style="color:#15803d;font-weight:800;">92.5%</td>
+                        <td class="mono">6.8% (4)</td>
+                        <td class="mono" style="color:#15803d;font-weight:800;">4.52 / 5.0</td>
+                        <td class="mono">89.0%</td>
+                        <td><span class="status-pill pill-optimal">Optimal: Maintain Load</span></td>
+                      </tr>
+                      <tr class="clickable-row" data-cluster="CAPSTONE" data-status="OPTIMAL" onclick="selectCourseRow(this, 'BAT 401-A • Advanced Analytics Practicum', 'Prof. L. Ferrer', 'FAC-118', '4.68', '4.55', '4.62', '4.58', '93.6%', '90.4%', 'Model Section: Strong retention, high passing rate, and exemplary SETE. Pair with BAT 405-A as a peer-mentoring reference section.')">
+                        <td><span class="course-code">BAT 401-A</span></td>
+                        <td class="faculty-cell" data-name="Prof. L. Ferrer" data-code="FAC-118">Prof. L. Ferrer</td>
+                        <td class="mono">93% (56/60)</td>
+                        <td class="mono" style="color:#15803d;font-weight:800;">93.6%</td>
+                        <td class="mono">3.4% (2)</td>
+                        <td class="mono" style="color:#15803d;font-weight:800;">4.61 / 5.0</td>
+                        <td class="mono">90.4%</td>
+                        <td><span class="status-pill pill-optimal">Model Section: Peer Mentor</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </article>
+
+              <article class="card">
+                <div class="card-head">
+                  <div class="card-title"><h3>Section Drill-Down &amp; Decision Advisory</h3><p>Triangulates SETE dimensions, validity, and ML risk drivers</p></div>
+                  <span class="chip brand">Details on Demand</span>
+                </div>
+                <div class="drill-panel">
+                  <div class="drill-head">
+                    <div><strong id="drillCourseTitle">BAT 204-B • Database Management</strong><span id="drillFacultyBadge">Instructor: Prof. R. Mendoza</span></div>
+                    <span class="chip rose">Needs Action</span>
+                  </div>
+                  <div class="dim-grid">
+                    <div class="dim-box" id="dimBox1">
+                      <div class="dim-top"><span>1. Subject Mastery</span><b id="dim1Val">3.78 / 5.0</b></div>
+                      <div class="dim-meter"><i id="dim1Bar" style="width:75.6%"></i></div>
+                    </div>
+                    <div class="dim-box" id="dimBox2">
+                      <div class="dim-top"><span>2. Instructional Delivery</span><b id="dim2Val">3.45 / 5.0</b></div>
+                      <div class="dim-meter"><i id="dim2Bar" style="width:69%"></i></div>
+                    </div>
+                    <div class="dim-box" id="dimBox3">
+                      <div class="dim-top"><span>3. Class Management</span><b id="dim3Val">3.52 / 5.0</b></div>
+                      <div class="dim-meter"><i id="dim3Bar" style="width:70.4%"></i></div>
+                    </div>
+                    <div class="dim-box" id="dimBox4">
+                      <div class="dim-top"><span>4. Assessment Fairness</span><b id="dim4Val">3.38 / 5.0</b></div>
+                      <div class="dim-meter"><i id="dim4Bar" style="width:67.6%"></i></div>
+                    </div>
+                  </div>
+                  <div class="decision-box">
+                    <strong>Recommended Program Chair Decision</strong>
+                    <div id="drillDecisionText">High Midterm Failure (23.8%) + Low Assessment Fairness SETE (3.38). Schedule syllabus rubric calibration &amp; mandatory peer tutoring for the 15 flagged students.</div>
+                  </div>
+                  <div class="drill-foot">
+                    <span>Privacy Safeguard: anonymized evaluators (min n ≥ 5)</span>
+                    <span>Recall <strong>88.4%</strong> | F1 <strong>0.84</strong></span>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+          </div>
+        </div>
+
+        <section class="guide-grid" id="guideView" role="tabpanel" aria-labelledby="tabGuideBtn">
+          <article class="card">
+            <div class="card-head"><div class="card-title"><h3>1. Top KPI Ribbon (5 KPI Cards)</h3><p>Balances Academic Operations (Portal) &amp; Teaching Effectiveness (SETE)</p></div></div>
+            <div class="guide-body">
+              <p><strong>KPI 1 (Course Passing Rate - 89.4%):</strong> Tracks student progression vs. the ≥88.0% target.</p>
+              <p><strong>KPI 2 (Midterm At-Risk Flagged - 8.6%):</strong> Powered by the Part IV Classification Model to flag struggling students at Week 8.</p>
+              <p><strong>KPI 3 (Section Capacity Utilization - 92.5%):</strong> Monitors class crowding and workload balance.</p>
+              <p><strong>KPI 4 (Dept. Mean SETE Score - 4.34/5.00):</strong> Tracks composite teaching quality across 4 rubric criteria.</p>
+              <p><strong>KPI 5 (SETE Response Rate - 84.2%):</strong> Protects statistical validity by flagging sections below the 65% minimum floor.</p>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-head"><div class="card-title"><h3>2. Three Core Data Visualizations</h3><p>Designed for cross-system correlation and trend diagnosis</p></div></div>
+            <div class="guide-body">
+              <p><strong>Viz 1 (SETE Dimensions Across Semesters):</strong> Grouped bar chart + 4.20 target line comparing Subject Mastery, Instructional Delivery, Class Management, and Assessment Fairness over 4 terms.</p>
+              <p><strong>Viz 2 (Course Passing vs. SETE Quadrant Matrix):</strong> Integrates Portal Passing % (X-axis) with SETE Rating (Y-axis) to separate <em>High-Rigor courses needing tutors (Q2)</em> from <em>Critical Coaching sections (Q4)</em>.</p>
+              <p><strong>Viz 3 (Predicted Student Risk Breakdown):</strong> Stacked horizontal bar chart showing High/Moderate/Low risk student counts per course.</p>
+              <p><strong>Operational Insights:</strong> Section capacity bars with an 85–100% target band, a 3-term passing vs. response rate trend that follows the term slicer, and a donut showing where the 42 flagged students are concentrated.</p>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-head"><div class="card-title"><h3>3. Interactive Features &amp; Warning System</h3><p>Supports exploration while enforcing data privacy</p></div></div>
+            <div class="guide-body">
+              <p><strong>Interactive Feature 1 (Dynamic Slicers &amp; Row Drill-Down):</strong> Filter by Academic Term, Course Cluster, and Alert Status, or click any table row to inspect its 4 SETE rubric dimensions. KPI counters, capacity bars, risk segments, scatter points, trend lines, and the donut animate and recompute on every filter change.</p>
+              <p><strong>Interactive Feature 2 (Committee Privacy Mode Toggle):</strong> Masks faculty names into anonymized codes (<code>FAC-104</code>) during curriculum committee reviews.</p>
+              <p><strong>Warning/Alert Mechanism:</strong> Red &amp; amber threshold badges highlight <code>BAT 204-B</code> (23.8% risk + 3.38 Assessment SETE) and <code>BAT 302-C</code> (56% low sample size).</p>
+            </div>
+          </article>
+        </section>
+
+        <footer class="footer">
+          <span><strong>ChairDesk</strong> · BAT 405 Integrated Case Study (Portal + SETE Decision-Support Dashboard)</span>
+          <span>Tip: click the app name in the welcome banner to customize the title (auto-saved in browser).</span>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    let isPrivacyMasked = false;
+    let currentSelectedFacultyName = 'Prof. R. Mendoza';
+    let currentSelectedFacultyCode = 'FAC-104';
+
+    const appNameBadge = document.getElementById('appNameBadge');
+    const savedAppName = localStorage.getItem('bat405_chairdesk_app_name');
+    if (savedAppName) {
+      appNameBadge.textContent = savedAppName;
+    }
+    appNameBadge.addEventListener('input', () => {
+      localStorage.setItem('bat405_chairdesk_app_name', appNameBadge.textContent.trim() || 'ChairDesk');
+    });
+
+    function switchView(view) {
+      const mainView = document.getElementById('mainDashboardView');
+      const guideView = document.getElementById('guideView');
+      const tabMainBtn = document.getElementById('tabMainBtn');
+      const tabGuideBtn = document.getElementById('tabGuideBtn');
+
+      if (view === 'main') {
+        mainView.style.display = 'flex';
+        guideView.style.display = 'none';
+        tabMainBtn.classList.add('active');
+        tabGuideBtn.classList.remove('active');
+        tabMainBtn.setAttribute('aria-selected', 'true');
+        tabGuideBtn.setAttribute('aria-selected', 'false');
+      } else {
+        mainView.style.display = 'none';
+        guideView.style.display = 'grid';
+        tabMainBtn.classList.remove('active');
+        tabGuideBtn.classList.add('active');
+        tabMainBtn.setAttribute('aria-selected', 'false');
+        tabGuideBtn.setAttribute('aria-selected', 'true');
+      }
+    }
+
+    const riskDataset = [
+      { code: 'BAT 204-B', cluster: 'CORE', status: 'FLAGGED', count: 15 },
+      { code: 'BAT 201-A', cluster: 'QUANT', status: 'FLAGGED', count: 9 },
+      { code: 'BAT 302-C', cluster: 'CORE', status: 'FLAGGED', count: 6 },
+      { code: 'BAT 305-B', cluster: 'QUANT', status: 'OPTIMAL', count: 4 },
+      { code: 'BAT 102-A', cluster: 'CORE', status: 'OPTIMAL', count: 4 },
+      { code: 'BAT 405-A & 401-A', cluster: 'CAPSTONE', status: 'OPTIMAL', count: 4 }
+    ];
+    const donutColors = ['#e11d48', '#8b5cf6', '#f59e0b', '#10b981'];
+    const termConfig = {
+      '2026-1': { riskCounts: [15, 9, 6, 4, 4, 4], capFactor: 1, scatterX: 0, scatterY: 0 },
+      '2025-2': { riskCounts: [17, 10, 7, 4, 4, 4], capFactor: 0.975, scatterX: -9, scatterY: 6 },
+      '2025-1': { riskCounts: [19, 11, 8, 5, 4, 4], capFactor: 0.96, scatterX: -17, scatterY: 12 }
+    };
+    const riskEnrollments = [63, 62, 62, 59, 65, 118];
+    const riskBaseMod = [17.5, 16.0, 12.4, 10.2, 9.8, 6.6];
+    const kpiAnimations = new WeakMap();
+    let activeTerm = '2026-1';
+    let filterTimer;
+
+    function animateKpi(id, html) {
+      const el = document.getElementById(id);
+      const match = html.match(/^([\d.]+)([\s\S]*)$/);
+      if (!match) {
+        el.innerHTML = html;
+        return;
+      }
+      const target = parseFloat(match[1]);
+      const decimals = (match[1].split('.')[1] || '').length;
+      const suffix = match[2];
+      const current = parseFloat(el.textContent) || target;
+      const previous = kpiAnimations.get(el);
+      if (previous) cancelAnimationFrame(previous);
+      const started = performance.now();
+      const duration = 520;
+      const step = now => {
+        const progress = Math.min((now - started) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const value = current + (target - current) * eased;
+        el.innerHTML = value.toFixed(decimals) + suffix;
+        if (progress < 1) {
+          kpiAnimations.set(el, requestAnimationFrame(step));
+        } else {
+          kpiAnimations.delete(el);
+        }
+      };
+      kpiAnimations.set(el, requestAnimationFrame(step));
+    }
+
+    function replayTrend() {
+      const lines = document.querySelectorAll('.trend-chart .line-pass, .trend-chart .line-resp');
+      lines.forEach(line => { line.style.strokeDashoffset = '1000'; });
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        lines.forEach(line => { line.style.strokeDashoffset = '0'; });
+      }));
+    }
+
+    function replayChartBars() {
+      const bars = Array.from(document.querySelectorAll('.capacity-fill, .seg-high, .seg-mod, .seg-low'));
+      const targets = bars.map(bar => bar.style.width || '0%');
+      bars.forEach(bar => { bar.style.width = '0%'; });
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        bars.forEach((bar, index) => { bar.style.width = targets[index]; });
+      }));
+    }
+
+    function currentRiskData() {
+      const counts = termConfig[activeTerm].riskCounts;
+      return riskDataset.map((item, index) => ({ code: item.code, cluster: item.cluster, status: item.status, count: counts[index] }));
+    }
+
+    function updateTermCharts(term) {
+      activeTerm = term;
+      const config = termConfig[term];
+      const counts = config.riskCounts;
+
+      document.querySelectorAll('.semester-group').forEach(group => {
+        const focus = group.getAttribute('data-term') === term;
+        group.classList.toggle('sem-focus', focus);
+        group.classList.toggle('sem-dim', !focus);
+      });
+
+      document.querySelectorAll('.scatter-point').forEach(point => {
+        point.style.setProperty('--tx', config.scatterX + 'px');
+        point.style.setProperty('--ty', config.scatterY + 'px');
+      });
+
+      document.querySelectorAll('.capacity-row').forEach(row => {
+        const fill = row.querySelector('.capacity-fill');
+        const base = parseFloat(fill.dataset.baseWidth || fill.style.width);
+        const width = Math.min(100, base * config.capFactor);
+        const value = Math.round(base * config.capFactor);
+        fill.style.width = width.toFixed(1) + '%';
+        row.querySelector('.capacity-value').textContent = value + '%';
+        row.classList.toggle('over', value > 100);
+        row.classList.toggle('under', value < 85);
+      });
+
+      document.querySelectorAll('.risk-row').forEach((row, index) => {
+        const highCount = counts[index];
+        const highPct = highCount / riskEnrollments[index] * 100;
+        const modPct = riskBaseMod[index];
+        const lowPct = Math.max(0, 100 - highPct - modPct);
+        row.querySelector('.seg-high').style.width = highPct.toFixed(1) + '%';
+        row.querySelector('.seg-mod').style.width = modPct.toFixed(1) + '%';
+        row.querySelector('.seg-low').style.width = lowPct.toFixed(1) + '%';
+        const meta = row.querySelector('.risk-meta span:last-child');
+        meta.textContent = highPct.toFixed(1) + '% High (' + highCount + ')' + (index === 0 ? ' ⚠' : '');
+      });
+    }
+
+    function matchesFilters(el, cluster, status, query) {
+      const matchCluster = cluster === 'ALL' || el.getAttribute('data-cluster') === cluster;
+      const matchStatus = status === 'ALL' || el.getAttribute('data-status') === status;
+      const matchQuery = query === '' || el.textContent.toLowerCase().includes(query);
+      return matchCluster && matchStatus && matchQuery;
+    }
+
+    function renderDonut(cluster, status, query) {
+      const visible = currentRiskData().filter(item =>
+        (cluster === 'ALL' || item.cluster === cluster) &&
+        (status === 'ALL' || item.status === status) &&
+        (query === '' || item.code.toLowerCase().includes(query))
+      );
+      const total = visible.reduce((sum, item) => sum + item.count, 0);
+      const sorted = visible.slice().sort((a, b) => b.count - a.count);
+      const groups = sorted.slice(0, 3).map(item => ({ label: item.code, count: item.count }));
+      const remaining = sorted.slice(3);
+      if (remaining.length) {
+        groups.push({ label: 'Others (' + remaining.length + ' courses)', count: remaining.reduce((sum, item) => sum + item.count, 0) });
+      }
+      const circumference = 2 * Math.PI * 44;
+      let offset = 0;
+
+      for (let index = 0; index < 4; index++) {
+        const circle = document.getElementById('donutSeg' + (index + 1));
+        const legend = document.getElementById('donutLegend' + (index + 1));
+        const group = groups[index];
+        if (!group) {
+          circle.style.strokeDasharray = '0 ' + circumference;
+          legend.style.opacity = '0.15';
+          continue;
+        }
+        const length = group.count / (total || 1) * circumference;
+        circle.style.strokeDasharray = length + ' ' + circumference;
+        circle.style.strokeDashoffset = -offset;
+        circle.setAttribute('stroke', donutColors[index]);
+        legend.style.opacity = '1';
+        legend.querySelector('i').style.background = donutColors[index];
+        legend.querySelector('span').textContent = group.label;
+        legend.querySelector('b').textContent = group.count + ' · ' + (group.count / (total || 1) * 100).toFixed(1) + '%';
+        offset += length;
+      }
+
+      document.getElementById('donutTotal').textContent = total;
+      document.getElementById('donutTitle').textContent = 'Where the ' + total + ' At-Risk Students Are';
+    }
+
+    function syncChartFilters(cluster, status, query) {
+      document.querySelectorAll('.capacity-row, .risk-row, .scatter-point').forEach(el => {
+        el.classList.toggle('filtered-out', !matchesFilters(el, cluster, status, query));
+      });
+      renderDonut(cluster, status, query);
+    }
+
+    function queueFilter() {
+      clearTimeout(filterTimer);
+      filterTimer = setTimeout(() => filterRows(true), 180);
+    }
+
+    function filterRows(replay = false) {
+      const cluster = document.getElementById('clusterSelect').value;
+      const alertFilter = document.getElementById('alertSelect').value;
+      const query = document.getElementById('tableSearch').value.trim().toLowerCase();
+      const rows = document.querySelectorAll('#sectionTable tbody tr');
+      let visible = 0;
+
+      rows.forEach(row => {
+        const show = matchesFilters(row, cluster, alertFilter, query);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+
+      document.getElementById('rowCount').textContent = visible + ' of ' + rows.length + ' sections';
+      syncChartFilters(cluster, alertFilter, query);
+      if (replay) {
+        replayTrend();
+        replayChartBars();
+      }
+    }
+
+    function applyDashboardFilters() {
+      const term = document.getElementById('termSelect').value;
+      const kpiMap = {
+        '2026-1': { pass: '89.4%', risk: '8.6% <small>(42 Stu)</small>', cap: '92.5%', sete: '4.34 <small>/ 5.00</small>', resp: '84.2%' },
+        '2025-2': { pass: '88.1%', risk: '9.8% <small>(46 Stu)</small>', cap: '90.2%', sete: '4.28 <small>/ 5.00</small>', resp: '81.5%' },
+        '2025-1': { pass: '86.9%', risk: '11.2% <small>(51 Stu)</small>', cap: '88.8%', sete: '4.21 <small>/ 5.00</small>', resp: '79.4%' }
+      };
+
+      const selectedKpi = kpiMap[term];
+      animateKpi('kpiPassVal', selectedKpi.pass);
+      animateKpi('kpiRiskVal', selectedKpi.risk);
+      animateKpi('kpiCapVal', selectedKpi.cap);
+      animateKpi('kpiSeteVal', selectedKpi.sete);
+      animateKpi('kpiRespVal', selectedKpi.resp);
+      updateTrendHighlight(term);
+      updateTermCharts(term);
+      filterRows(true);
+    }
+
+    function updateTrendHighlight(term) {
+      document.querySelectorAll('.trend-chart [data-term]').forEach(el => {
+        el.classList.toggle('active', el.getAttribute('data-term') === term);
+      });
+    }
+
+    function setupTooltips() {
+      const tooltip = document.createElement('div');
+      tooltip.className = 'chart-tooltip';
+      document.body.appendChild(tooltip);
+
+      document.querySelectorAll('svg title').forEach(title => {
+        const text = title.textContent.trim();
+        if (!text) return;
+        const target = title.parentElement;
+        target.setAttribute('data-tip', text);
+        target.setAttribute('aria-label', text);
+        title.remove();
+      });
+
+      document.querySelectorAll('.capacity-row[title], .risk-row[title]').forEach(el => {
+        const text = el.getAttribute('title');
+        el.setAttribute('data-tip', text);
+        el.setAttribute('aria-label', text);
+        el.removeAttribute('title');
+      });
+
+      const position = event => {
+        const x = Math.min(event.clientX + 14, window.innerWidth - tooltip.offsetWidth - 10);
+        const y = Math.min(event.clientY + 14, window.innerHeight - tooltip.offsetHeight - 10);
+        tooltip.style.left = Math.max(8, x) + 'px';
+        tooltip.style.top = Math.max(8, y) + 'px';
+      };
+
+      document.addEventListener('mouseover', event => {
+        const target = event.target.closest('[data-tip]');
+        if (!target) return;
+        tooltip.textContent = target.getAttribute('data-tip');
+        tooltip.classList.add('show');
+        position(event);
+      });
+
+      document.addEventListener('mousemove', event => {
+        if (tooltip.classList.contains('show')) position(event);
+      });
+
+      document.addEventListener('mouseout', event => {
+        const target = event.target.closest('[data-tip]');
+        if (target && !target.contains(event.relatedTarget)) {
+          tooltip.classList.remove('show');
+        }
+      });
+    }
+
+    function focusCourse(code, el) {
+      document.getElementById('clusterSelect').value = 'ALL';
+      document.getElementById('alertSelect').value = 'ALL';
+      document.getElementById('tableSearch').value = '';
+      filterRows();
+
+      document.querySelectorAll('.capacity-row').forEach(row => row.classList.remove('active'));
+      if (el) el.classList.add('active');
+
+      const target = Array.from(document.querySelectorAll('#sectionTable tbody tr'))
+        .find(row => row.textContent.includes(code));
+      if (target) target.click();
+      document.getElementById('courses').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function togglePrivacyMask() {
+      isPrivacyMasked = document.getElementById('privacyToggle').checked;
+      const cells = document.querySelectorAll('.faculty-cell');
+      cells.forEach(cell => {
+        cell.textContent = isPrivacyMasked ? cell.getAttribute('data-code') : cell.getAttribute('data-name');
+      });
+      document.getElementById('drillFacultyBadge').textContent =
+        'Instructor: ' + (isPrivacyMasked ? currentSelectedFacultyCode : currentSelectedFacultyName);
+      document.getElementById('privacyNavLabel').textContent = 'Privacy Mode: ' + (isPrivacyMasked ? 'On' : 'Off');
+    }
+
+    function togglePrivacyFromSidebar() {
+      const checkbox = document.getElementById('privacyToggle');
+      checkbox.checked = !checkbox.checked;
+      togglePrivacyMask();
+    }
+
+    function selectCourseRow(rowEl, courseTitle, facName, facCode, d1, d2, d3, d4, passRate, respRate, decisionText) {
+      document.querySelectorAll('#sectionTable tbody tr').forEach(r => r.classList.remove('selected-row'));
+      rowEl.classList.add('selected-row');
+
+      currentSelectedFacultyName = facName;
+      currentSelectedFacultyCode = facCode;
+
+      document.getElementById('drillCourseTitle').textContent = courseTitle;
+      document.getElementById('drillFacultyBadge').textContent =
+        'Instructor: ' + (isPrivacyMasked ? facCode : facName);
+
+      const scores = [d1, d2, d3, d4];
+      scores.forEach((score, index) => {
+        const n = index + 1;
+        const value = parseFloat(score);
+        document.getElementById('dim' + n + 'Val').textContent = score + ' / 5.0';
+        document.getElementById('dim' + n + 'Bar').style.width = (value / 5 * 100).toFixed(1) + '%';
+        const box = document.getElementById('dimBox' + n);
+        box.classList.remove('low', 'mid');
+        if (value < 3.5) box.classList.add('low');
+        else if (value < 4.2) box.classList.add('mid');
+      });
+
+      document.getElementById('drillDecisionText').innerHTML = decisionText;
+    }
+
+    function toggleSidebar() {
+      const shell = document.getElementById('appShell');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (window.innerWidth <= 1120) {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('show', sidebar.classList.contains('open'));
+      } else {
+        shell.classList.toggle('collapsed');
+      }
+    }
+
+    function navigateTo(target) {
+      document.querySelectorAll('.side-link[data-nav]').forEach(link => {
+        link.classList.toggle('active', link.getAttribute('data-nav') === target);
+      });
+
+      if (target === 'guide') {
+        switchView('guide');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        switchView('main');
+        setTimeout(() => {
+          const el = document.getElementById(target);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          else window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 30);
+      }
+
+      if (window.innerWidth <= 1120) {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('show');
+      }
+    }
+
+    function toggleNotifications() {
+      document.getElementById('notifPanel').classList.toggle('open');
+    }
+
+    document.addEventListener('click', event => {
+      const panel = document.getElementById('notifPanel');
+      if (panel.classList.contains('open') && !event.target.closest('.notif-wrap')) {
+        panel.classList.remove('open');
+      }
+    });
+
+    document.querySelectorAll('.capacity-fill, .seg-high, .seg-mod, .seg-low').forEach(bar => {
+      bar.dataset.baseWidth = bar.style.width;
+    });
+
+    document.querySelectorAll('.capacity-row').forEach(row => {
+      row.setAttribute('role', 'button');
+      row.tabIndex = 0;
+      row.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          row.click();
+        }
+      });
+    });
+
+    setupTooltips();
+
+    document.getElementById('guideView').style.display = 'none';
+    updateTrendHighlight(document.getElementById('termSelect').value);
+    updateTermCharts(document.getElementById('termSelect').value);
+    filterRows();
+  </script>
+</body>
+</html>
